@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Agent Lab",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -84,8 +84,9 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/images/234511077.png",
+    "dark": "/images/234511071.png",
+    "href": "https://agent-lab.tech"
   },
   "navbar": {
     "links": [
@@ -118,5 +119,9 @@
       "github": "https://github.com/mintlify",
       "linkedin": "https://linkedin.com/company/mintlify"
     }
+  },
+  "description": "Agent Lab is a consulting agency to content creators transforming into an AI Native Agency.",
+  "appearance": {
+    "default": "light"
   }
 }
