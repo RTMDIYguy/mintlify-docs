@@ -1,6 +1,6 @@
 ---
-title: "Quickstart"
-description: "Run the Predictive Opportunity Intelligence Dashboard locally and deploy it to Google Cloud Run"
+title: "Quickstart: run the dashboard locally and on Cloud Run"
+description: "Set up the Predictive Opportunity Intelligence Dashboard: install dependencies, configure Gemini and Firebase, run locally, and deploy to Google Cloud Run."
 ---
 
 The Predictive Opportunity Intelligence Dashboard is a full-stack React + Express application that ingests federal and alternative data signals (SAM.gov, openFDA, ClinicalTrials.gov, USASpending.gov, arXiv, SEC EDGAR, USPTO) and synthesizes them into predictive intelligence using Google Gemini.
@@ -57,12 +57,12 @@ SEC_EDGAR_USER_AGENT=
 ```
 
 <Warning>
-  All third-party credentials live **server-side only**. The browser never receives them directly — the client calls proxy endpoints like `/api/analyze`, `/api/scrape/url`, `/api/scrape/linkedin`, and `/api/ingest/live`, which in turn talk to Gemini and external data sources on the server. Never expose `GEMINI_API_KEY` to client code.
+  All third-party credentials live **server-side only**. The browser never receives them directly. Instead, the client calls proxy endpoints like `/api/analyze`, `/api/scrape/url`, `/api/scrape/linkedin`, and `/api/ingest/live`, and the server talks to Gemini and external data sources on your behalf. Never expose `GEMINI_API_KEY` to client code.
 </Warning>
 
 ### Firebase configuration
 
-Firestore is used to persist the canonical entity dictionary, the knowledge graph, and NER training data. Firebase settings are read from `firebase-applet-config.json` at the repo root by `src/lib/firebase.ts`. Populate this file with your own project values before running the app:
+The app persists the canonical entity dictionary, the knowledge graph, and NER training data in Firestore. `src/lib/firebase.ts` reads Firebase settings from `firebase-applet-config.json` at the repo root. Populate this file with your own project values before running the app:
 
 ```json firebase-applet-config.json
 {
