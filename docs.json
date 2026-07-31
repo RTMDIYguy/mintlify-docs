@@ -64,6 +64,12 @@
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
             ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "api-reference/government-apis"
+            ]
           }
         ]
       }
