@@ -44,6 +44,12 @@
               "ai-tools/claude-code",
               "ai-tools/windsurf"
             ]
+          },
+          {
+            "group": "Workflows",
+            "pages": [
+              "workflows/founder-signal-system"
+            ]
           }
         ]
       },
