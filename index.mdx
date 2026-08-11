@@ -1,97 +1,58 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Agent Lab"
+description: "The working web and operations repository for Uncle Robert Consulting's AI-native agency system."
 ---
 
-## Setting up
+Agent Lab has two jobs. It runs the public-facing Uncle Robert Consulting web application, and it acts as the repo-native home for workflow packages, operating docs, and agent handoff materials used to move the business from planning into execution.
 
-Get your documentation site up and running in minutes.
+## What Agent Lab supports
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
+Agent Lab hosts the operating architecture for four brands:
 
 <Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+  <Card title="Uncle Robert Consulting (URC)" icon="briefcase">
+    The main business. Owner of client relationships, delivery standards, IP, and invoicing.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Tactix" icon="bolt">
+    The fulfillment arm. Handles Upwork-facing execution against URC standards.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Bootstrapper Capital" icon="users">
+    The founder audience, event, and funnel layer.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Bootstrapper's Guide to the World" icon="book">
+    The authority asset that feeds the founder funnel.
   </Card>
 </Columns>
 
-## Create beautiful pages
+## Current execution focus
 
-Everything you need to create world-class documentation.
+Agent Lab is aimed at practical, near-term work:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+- Clarify the offer ladder.
+- Package sellable starter workflows.
+- Support book-to-client CTAs.
+- Build lightweight CRM and follow-up rhythms.
+- Turn the 90-day plan into weekly actions.
 
-## Need inspiration?
+## Repository map
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
+| Path | Purpose |
+| --- | --- |
+| `src/` | React client application. |
+| `server/` | Express and tRPC server, plus backend modules. |
+| `docs/operations/` | Operating architecture, execution plans, change control, workflow registry, and handoff docs. |
+| `workflows/` | Imported workflow sources and client-facing workflow packages. |
+| `scripts/` | Repo utilities, including change-control verification. |
+| `content/` | CMS-managed site content. |
+
+## Flagship starter package
+
+The current client-facing starter package is the **Marketing Founder Signal System**, located at `workflows/marketing-founder-signal-system/`.
+
+It is a thin, sellable vertical slice across founder intake, signal capture, content brief creation, outreach, follow-up, and proof capture. It is priced as a starter setup and remains draft until tested with real founder cycles.
+
+## Next steps
+
+<Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+  Get the docs site running locally and start editing.
 </Card>
