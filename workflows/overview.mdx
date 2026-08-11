@@ -1,6 +1,6 @@
 ---
 title: "Workflow packages"
-description: "How Agent Lab's workflow kits are organized, versioned, and navigated by operators and buyers."
+description: "How Agent Lab workflow kits are organized across seven series, versioned with the kit/1.0 manifest, and navigated by operators and buyers."
 ---
 
 Agent Lab ships a catalog of workflow kits that operators can pick up, run, and adapt. Each kit is a self-contained package that covers one business workflow end to end: what it does, when to run it, what inputs it needs, and how it validates.
@@ -63,7 +63,7 @@ The fields that matter most when picking up a kit:
 
 ### Kit status: Draft, Active, and Certified
 
-Kits move through three status levels. Do not treat a lower-status kit as if it were higher — the differences are about how much evidence backs the kit, not just how polished it looks.
+Kits move through three status levels. Do not treat a lower-status kit as if it were higher. The differences are about how much evidence backs the kit, not just how polished it looks.
 
 | Status | What it means | Safe to use for |
 | --- | --- | --- |
@@ -102,12 +102,12 @@ Each series follows the same numbering convention, so `MKT-06` always means Cont
 
 Start from the problem you are trying to solve, not from the folder listing.
 
-- **Buyers** should read the department-level series that matches their pain, then open the specific kit whose `trigger` matches when they would actually run it. The `automationLevel` field tells them how much of the workflow is automated versus manual.
-- **Operators** should open `kit.md` first, work through Setup and Quickstart, and only dive into `source/`, `automation/`, or `trackers/` when the manifest points them there. Record every meaningful change through the change log in the manifest and the change control register.
-- **Reviewers certifying a kit** should walk the Validation checklist in `kit.md`, confirm the manifest's `status` and `conformance` reflect reality, and split the URC/internal and client-facing variants before promoting the kit to Active or Certified.
+- **If you are a buyer**, read the department-level series that matches your pain. Open the specific kit whose `trigger` matches when you would actually run it. The `automationLevel` field tells you how much of the workflow is automated versus manual.
+- **If you are an operator**, open `kit.md` first and work through Setup and Quickstart. Only dive into `source/`, `automation/`, or `trackers/` when the manifest points you there. Record every meaningful change through the change log in the manifest and the change control register.
+- **If you are certifying a kit**, walk the Validation checklist in `kit.md`. Confirm the manifest's `status` and `conformance` reflect reality. Split the URC/internal and client-facing variants before promoting the kit to Active or Certified.
 
 ## The flagship: Founder Signal System
 
 The `marketing-founder-signal-system` kit is the flagship starter package. It is a thin vertical slice across six Marketing workflows (MKT-01, MKT-02, MKT-03, MKT-04, MKT-05, and MKT-06) aimed at solo founders and small service-based businesses.
 
-The flagship is a Draft kit today. It is the first sellable cut while the underlying Marketing kits are still being converted, and it deliberately excludes paid advertising (MKT-07), social media management (MKT-08), and event marketing (MKT-09). Use it as a template for how future cross-series bundles should be packaged.
+The flagship is a Draft kit today. It is the first sellable cut while the underlying Marketing kits are still being converted. It deliberately excludes paid advertising (MKT-07), social media management (MKT-08), and event marketing (MKT-09). Use it as a template for how to package future cross-series bundles.
