@@ -38,6 +38,12 @@
             ]
           },
           {
+            "group": "Workflow packages",
+            "pages": [
+              "workflows/overview"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
