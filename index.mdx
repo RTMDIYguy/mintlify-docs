@@ -1,97 +1,62 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Predictive Opportunity Intelligence Dashboard overview"
+description: "Predictive Opportunity Intelligence Dashboard — predict federal business and contracting opportunities from public open data, synthesized by Gemini AI."
 ---
 
-## Setting up
+## Overview
 
-Get your documentation site up and running in minutes.
+The **Predictive Opportunity Intelligence Dashboard** — also known as *Market Marksman* and the *Federal Signal Analytics Platform* — is a full-stack analytics application. It surfaces business and government contracting opportunities from United States federal open data. It ingests weak signals across scientific, regulatory, financial, and procurement sources, then uses Google's Gemini models to synthesize them into predictive intelligence reports you can act on.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+Use it when you need to:
 
-## Make it yours
+- Track early technology, regulatory, and grant signals across federal agencies.
+- Identify emerging contracting and commercialization opportunities before they hit mainstream channels.
+- Turn raw open data into structured predictions with technology readiness levels (TRL), market timing horizons, and recommended actions.
 
-Design a docs site that looks great and empowers your users.
+## Key features
 
 <Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+  <Card title="Multi-source federal data ingestion" icon="database">
+    Direct integrations with ClinicalTrials.gov, openFDA, USASpending.gov, SAM.gov, arXiv, SEC EDGAR, and USPTO open data.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Signal processing sandbox" icon="sliders">
+    Filter, toggle, and analyze weak signals across technology, regulatory, grant, and commercialization vectors.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Gemini AI strategic synthesis" icon="sparkles">
+    Generate predictive intelligence reports with TRL scores, market timing horizons, and recommended actions.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Zero-config public APIs" icon="key">
+    Query the major federal datasets out of the box. Optional keys unlock higher rate limits on openFDA and direct SAM.gov access.
   </Card>
 </Columns>
 
-## Create beautiful pages
+## Federal open data sources
 
-Everything you need to create world-class documentation.
+| Source | Auth required | What it provides |
+| :--- | :---: | :--- |
+| **ClinicalTrials.gov** | No | Phase I–IV study registrations, sponsor funding, pipeline progress |
+| **USASpending.gov** | No | Prime contracts, grant awards, federal obligations |
+| **arXiv** | No | Scientific pre-prints in AI, biotech, quantum computing, and robotics |
+| **USPTO** | No | Patent applications, granted claims, and emerging innovation filings |
+| **SEC EDGAR** | No | 10-K/10-Q disclosures and material corporate R&D investments |
+| **openFDA** | Optional | Adverse events, drug approvals, and medical device recalls (higher rate limits with a free key) |
+| **SAM.gov** | Optional | Federal solicitations and contract opportunities (fallback signals included; optional key for direct API) |
+
+## Tech stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Framer Motion, Lucide React icons, and Recharts for interactive charts.
+- **Backend**: Express on Node.js with Vite development middleware.
+- **Data & auth**: Firebase for hosting configuration and Firestore for persistence.
+- **AI engine**: Google GenAI SDK (`@google/genai`) using Gemini models for cross-domain signal synthesis.
+- **Build**: Vite for the client bundle and `esbuild` for the production CommonJS server (`dist/server.cjs`).
+
+## Next steps
 
 <Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get the dashboard running locally with a Gemini API key.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Local development" icon="pen-to-square" href="/development">
+    Editor setup, environment variables, and dev workflow.
   </Card>
 </Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
