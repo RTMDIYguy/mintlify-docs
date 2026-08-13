@@ -1,0 +1,85 @@
+---
+title: 'U.S. Government API integrations'
+description: 'Authenticate and configure federal open-data endpoints: ClinicalTrials.gov, USASpending, arXiv, USPTO, SEC EDGAR, openFDA, and SAM.gov.'
+---
+
+## Overview
+
+Most U.S. government data endpoints used by the application are **publicly accessible open-data APIs** that require no authentication. A few endpoints support optional API keys that raise rate limits or unlock direct access, and one endpoint (SEC EDGAR) requires an identifying `User-Agent` header.
+
+Use this page when you need to:
+
+- Understand which federal endpoints require credentials.
+- Provision optional API keys for higher rate limits or authenticated access.
+- Configure the SEC EDGAR `User-Agent` header.
+- Troubleshoot SAM.gov API key propagation delays.
+
+## Endpoint authentication matrix
+
+| Federal data endpoint | API key required? | Notes |
+| :--- | :--- | :--- |
+| **ClinicalTrials.gov** | No | Public API v2, no key required. |
+| **USASpending.gov** | No | Public API v2, no key required. |
+| **arXiv Repository** | No | Open OAI-PMH and Search API. |
+| **USPTO Patents & PatentsView** | No | Public open-data endpoints. |
+| **SEC EDGAR Filings** | No | Requires a standard `User-Agent` header in the form `Name/1.0 email@domain.com`. |
+| **openFDA** | Optional | Works keyless; an optional free key unlocks 240 requests/minute. |
+| **SAM.gov Solicitations** | Optional | Ingests fallback public signals; an optional key unlocks direct SAM.gov API access. |
+
+## Obtaining optional API keys
+
+### openFDA
+
+Visit [open.fda.gov/apis/authentication](https://open.fda.gov/apis/authentication/) and submit your email. A key is delivered in roughly ten seconds and raises the per-minute request limit to 240.
+
+### SAM.gov Public API Key
+
+1. Go to [sam.gov/workspace/profile/account-details](https://sam.gov/workspace/profile/account-details).
+2. Sign in with Login.gov.
+3. Open **Account Settings** and generate a **Public API Key**.
+
+Keys are prefixed with `SAM-` (for example, `SAM-007a9afa-a177-4e68-8a71-be3ad125e71f`).
+
+### SAM.gov Unique Entity ID (UEI)
+
+The Unique Entity ID (UEI) is issued through the SAM Entity Management workspace when your organization completes entity registration. It is a 12-character alphanumeric identifier (for example, `LX7PJGDDUUU1`). The UEI is used both to identify your organization on SAM.gov and as a lookup key for the USASpending.gov fallback described below.
+
+## SEC EDGAR `User-Agent` requirement
+
+The SEC requires every request to EDGAR to include an identifying `User-Agent` header. Requests without one are rejected. Configure the header with your name (or organization) and a contact email:
+
+```bash
+SEC_EDGAR_USER_AGENT="Your Name/1.0 you@example.com"
+```
+
+When the header is set, all EDGAR requests are made in the form:
+
+```http
+GET /submissions/CIK0000320193.json HTTP/1.1
+Host: data.sec.gov
+User-Agent: Your Name/1.0 you@example.com
+```
+
+## SAM.gov GSA API Gateway propagation window
+
+Newly issued SAM.gov Public API Keys are provisioned in the GSA API Gateway and must propagate across gateway clusters before they can be used. Propagation can take **up to 24 hours**. During this window, calls to `api.sam.gov` may return HTTP `403` or `404`, even though the key is valid.
+
+The platform detects this state and automatically falls back to the **USASpending.gov API**, keyed by your **Unique Entity ID (UEI)**, so live contract and award data continues to flow until SAM.gov gateway sync completes. Once the key is fully registered, direct SAM.gov calls resume automatically — no restart or reconfiguration is required.
+
+## Configuration reference
+
+All keys are optional except where indicated. Configure them in your environment or through the Settings / Secrets panel in the app UI:
+
+```bash
+# SEC EDGAR — required identifying header
+SEC_EDGAR_USER_AGENT="Your Name/1.0 you@example.com"
+
+# Optional keys for higher rate limits or direct access
+OPENFDA_API_KEY=
+SAM_GOV_API_KEY=
+USPTO_API_KEY=
+```
+
+<Tip>
+  Leave optional keys unset to use the keyless public endpoints. The application transparently upgrades to authenticated requests when a key is present.
+</Tip>
