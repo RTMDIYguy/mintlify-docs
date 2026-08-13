@@ -1,0 +1,113 @@
+---
+title: "Workflow packages: Agent Lab kit catalog overview"
+description: "How Agent Lab workflow kits are organized across seven series, versioned with the kit/1.0 manifest, and navigated by operators and buyers."
+---
+
+Agent Lab ships a catalog of workflow kits that operators can pick up, run, and adapt. Each kit is a self-contained package that covers one business workflow end to end: what it does, when to run it, what inputs it needs, and how it validates.
+
+Use this page to understand what a kit contains, how to read its status, and which series to open first for the problem you are trying to solve.
+
+## What a workflow kit contains
+
+Every kit follows the same folder shape so operators know exactly where to look. A typical kit includes:
+
+- `README.md`: packaging status and registry metadata for the workflow.
+- `kit.md`: the operative manifest that governs the kit (see [The kit/1.0 manifest](#the-kit-1-0-manifest)).
+- `automation/`: blueprint files for Make.com, n8n, or other runtimes when the workflow is automated.
+- `trackers/`: Excel or CSV tracker templates the workflow relies on.
+- `source/`: reference documents extracted from the original workflow source.
+
+Once a kit exists, `kit.md` is the file to open first. It carries the trigger, owner, cycle time, inputs, setup steps, validation checklist, and change log for the workflow.
+
+## The kit/1.0 manifest
+
+Every kit is described by a YAML frontmatter block at the top of `kit.md` that conforms to the `kit/1.0` schema. The manifest is what makes a kit reproducible and reviewable, not just a folder of files.
+
+A representative manifest looks like this:
+
+```yaml
+---
+schema: kit/1.0
+slug: cul-01-vision-purpose
+title: "CUL-01 - Vision & Purpose"
+summary: "Culture workflow package for Vision & Purpose."
+version: 0.1.0-draft
+owner: uncle-robert-consulting
+license: UNLICENSED
+status: imported-draft
+conformance: draft
+certifiedAt: null
+workflowId: CUL-01
+department: "Culture"
+automationLevel: "60-70%"
+primaryOwner: "Robert T. McCarthy"
+trigger: "Annual strategy session"
+cycleTime: "Vision: annual; OKRs: quarterly"
+sourceStatus: "Imported source"
+changeLog: []
+tags:
+  - workflow-package
+  - cul
+  - culture
+---
+```
+
+The fields that matter most when picking up a kit:
+
+- `workflowId` and `department`: where the kit lives in the catalog.
+- `trigger` and `cycleTime`: when to run it and how often.
+- `primaryOwner`: who is accountable for outcomes.
+- `automationLevel`: rough share of the workflow the automation handles.
+- `status` and `conformance`: how mature the kit is (see below).
+- `changeLog`: dated entries for every meaningful change to the kit.
+
+### Kit status: Draft, Active, and Certified
+
+Kits move through three status levels. Do not treat a lower-status kit as if it were higher. The differences are about how much evidence backs the kit, not just how polished it looks.
+
+| Status | What it means | Safe to use for |
+| --- | --- | --- |
+| Draft | Manifest exists but the kit has not been validated in a real run. Placeholders may not be bound. `certifiedAt` is `null`. | Agent orientation and controlled internal use. |
+| Active | Kit has been run at least once. Placeholders are bound, automations import cleanly, and manual fallbacks exist. | Internal operations with owner approval on external actions. |
+| Certified | Kit has documented evidence from live or controlled runs, a completed validation checklist, and an explicit decision on the internal versus client-facing variant. | Client-facing delivery and licensable use. |
+
+`README.md` in each kit calls out the current packaging status. `kit.md` records the same status in frontmatter and expands on what still blocks certification.
+
+### Two package variants
+
+Most kits eventually split into two variants:
+
+- **URC/internal package**: runs the internal operating system and may keep internal roles, tools, and targets.
+- **Client-facing package**: scrubbed of internal specifics and safe to hand to a buyer.
+
+Keep the variants explicit during conversion so internal operating docs do not accidentally ship as client deliverables.
+
+## The seven series
+
+Kits are grouped into seven series, one per department. Each series uses a stable `XXX-NN` slug so operators can reference a workflow without ambiguity.
+
+| Series | Department | What it covers |
+| --- | --- | --- |
+| CUL 01–08 | Culture | Vision, mission, governance, documentation, security, growth, R&D, strategy, and IT for the operating culture. |
+| MKT 01–09 | Marketing | Lead gen, nurture, polls, reviews, outreach, content, paid, social, and event marketing. |
+| OPS 01–08 | Operations | Vision, mission, governance, documentation, security, strategy, IT, growth, and R&D applied to operations. |
+| FIN 01–05 | Finance | Pricing, taxes, receivables and payables, accounting, and investment. |
+| SAL 01–06 | Sales | Proposals, onboarding, deals, closing, income streams, and fundraising. |
+| FUL 01–05 | Fulfillment | Packaging, client success, customer service, feedback, and analytics. |
+| AFC 01–04 | Recurring revenue | Subscriptions, memberships, long-term contracts, and communities. |
+
+Each series follows the same numbering convention, so `MKT-06` always means Content Creation & Dissemination, and `SAL-01` always means Proposals & Contracts. Reference kits by that ID in commit messages, change control entries, and cross-workflow handoffs.
+
+## How to navigate the catalog
+
+Start from the problem you are trying to solve, not from the folder listing.
+
+- **If you are a buyer**, read the department-level series that matches your pain. Open the specific kit whose `trigger` matches when you would actually run it. The `automationLevel` field tells you how much of the workflow is automated versus manual.
+- **If you are an operator**, open `kit.md` first and work through Setup and Quickstart. Only dive into `source/`, `automation/`, or `trackers/` when the manifest points you there. Record every meaningful change through the change log in the manifest and the change control register.
+- **If you are certifying a kit**, walk the Validation checklist in `kit.md`. Confirm the manifest's `status` and `conformance` reflect reality. Split the URC/internal and client-facing variants before promoting the kit to Active or Certified.
+
+## The flagship: Founder Signal System
+
+The `marketing-founder-signal-system` kit is the flagship starter package. It is a thin vertical slice across six Marketing workflows (MKT-01, MKT-02, MKT-03, MKT-04, MKT-05, and MKT-06) aimed at solo founders and small service-based businesses.
+
+The flagship is a Draft kit today. It is the first sellable cut while the underlying Marketing kits are still being converted. It deliberately excludes paid advertising (MKT-07), social media management (MKT-08), and event marketing (MKT-09). Use it as a template for how to package future cross-series bundles.
