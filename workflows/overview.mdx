@@ -11,11 +11,11 @@ Use this page to understand what a kit contains, how to read its status, and whi
 
 Every kit follows the same folder shape so operators know exactly where to look. A typical kit includes:
 
-- `README.md` — packaging status and registry metadata for the workflow.
-- `kit.md` — the operative manifest that governs the kit (see [The kit/1.0 manifest](#the-kit-1-0-manifest)).
-- `automation/` — blueprint files for Make.com, n8n, or other runtimes when the workflow is automated.
-- `trackers/` — Excel or CSV tracker templates the workflow relies on.
-- `source/` — reference documents extracted from the original workflow source.
+- `README.md`: packaging status and registry metadata for the workflow.
+- `kit.md`: the operative manifest that governs the kit (see [The kit/1.0 manifest](#the-kit-1-0-manifest)).
+- `automation/`: blueprint files for Make.com, n8n, or other runtimes when the workflow is automated.
+- `trackers/`: Excel or CSV tracker templates the workflow relies on.
+- `source/`: reference documents extracted from the original workflow source.
 
 Once a kit exists, `kit.md` is the file to open first. It carries the trigger, owner, cycle time, inputs, setup steps, validation checklist, and change log for the workflow.
 
@@ -54,12 +54,12 @@ tags:
 
 The fields that matter most when picking up a kit:
 
-- `workflowId` and `department` — where the kit lives in the catalog.
-- `trigger` and `cycleTime` — when to run it and how often.
-- `primaryOwner` — who is accountable for outcomes.
-- `automationLevel` — rough share of the workflow the automation handles.
-- `status` and `conformance` — how mature the kit is (see below).
-- `changeLog` — dated entries for every meaningful change to the kit.
+- `workflowId` and `department`: where the kit lives in the catalog.
+- `trigger` and `cycleTime`: when to run it and how often.
+- `primaryOwner`: who is accountable for outcomes.
+- `automationLevel`: rough share of the workflow the automation handles.
+- `status` and `conformance`: how mature the kit is (see below).
+- `changeLog`: dated entries for every meaningful change to the kit.
 
 ### Kit status: Draft, Active, and Certified
 
@@ -77,8 +77,8 @@ Kits move through three status levels. Do not treat a lower-status kit as if it 
 
 Most kits eventually split into two variants:
 
-- **URC/internal package** — runs the internal operating system and may keep internal roles, tools, and targets.
-- **Client-facing package** — scrubbed of internal specifics and safe to hand to a buyer.
+- **URC/internal package**: runs the internal operating system and may keep internal roles, tools, and targets.
+- **Client-facing package**: scrubbed of internal specifics and safe to hand to a buyer.
 
 Keep the variants explicit during conversion so internal operating docs do not accidentally ship as client deliverables.
 
