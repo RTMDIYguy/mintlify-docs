@@ -14,9 +14,14 @@
         "tab": "Guides",
         "groups": [
           {
+            "group": "Overview",
+            "pages": [
+              "index"
+            ]
+          },
+          {
             "group": "Getting started",
             "pages": [
-              "index",
               "quickstart",
               "development"
             ]

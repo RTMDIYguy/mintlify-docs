@@ -1,4 +1,61 @@
 ---
+title: "Agent Lab: Uncle Robert Consulting's AI-native agency"
+description: "Agent Lab runs the Uncle Robert Consulting web app and hosts the workflow packages, operating docs, and agent handoff materials for the URC agency system."
+---
+
+Agent Lab has two jobs. It runs the public-facing Uncle Robert Consulting web application. It also acts as the repo-native home for workflow packages, operating docs, and agent handoff materials used to move the business from planning into execution.
+
+## What Agent Lab supports
+
+Agent Lab hosts the operating architecture for four brands:
+
+<Columns cols={2}>
+  <Card title="Uncle Robert Consulting (URC)" icon="briefcase">
+    The main business. Owner of client relationships, delivery standards, IP, and invoicing.
+  </Card>
+  <Card title="Tactix" icon="bolt">
+    The fulfillment arm. Handles Upwork-facing execution against URC standards.
+  </Card>
+  <Card title="Bootstrapper Capital" icon="users">
+    The founder audience, event, and funnel layer.
+  </Card>
+  <Card title="Bootstrapper's Guide to the World" icon="book">
+    The authority asset that feeds the founder funnel.
+  </Card>
+</Columns>
+
+## Current execution focus
+
+Agent Lab is aimed at practical, near-term work:
+
+- Clarify the offer ladder.
+- Package sellable starter workflows.
+- Support book-to-client CTAs.
+- Build lightweight CRM and follow-up rhythms.
+- Turn the 90-day plan into weekly actions.
+
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| `src/` | React client application. |
+| `server/` | Express and tRPC server, plus backend modules. |
+| `docs/operations/` | Operating architecture, execution plans, change control, workflow registry, and handoff docs. |
+| `workflows/` | Imported workflow sources and client-facing workflow packages. |
+| `scripts/` | Repo utilities, including change-control verification. |
+| `content/` | CMS-managed site content. |
+
+## Flagship starter package
+
+The current client-facing starter package is the **Marketing Founder Signal System**, located at `workflows/marketing-founder-signal-system/`.
+
+It is a thin, sellable vertical slice across founder intake, signal capture, content brief creation, outreach, follow-up, and proof capture. It is priced as a starter setup and remains draft until tested with real founder cycles.
+
+## Next steps
+
+<Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+  Get the docs site running locally and start editing.
+</Card>
 title: "Predictive Opportunity Intelligence Dashboard overview"
 description: "Predict federal business and contracting opportunities from public open data sources, synthesized and ranked by Gemini AI in a full-stack dashboard."
 ---
