@@ -43,11 +43,23 @@
             ]
           },
           {
+            "group": "Workflow packages",
+            "pages": [
+              "workflows/overview"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
               "ai-tools/claude-code",
               "ai-tools/windsurf"
+            ]
+          },
+          {
+            "group": "Workflows",
+            "pages": [
+              "workflows/founder-signal-system"
             ]
           }
         ]
@@ -79,6 +91,12 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "api-reference/government-apis"
             ]
           }
         ]
@@ -136,7 +154,7 @@
       "linkedin": "https://linkedin.com/company/mintlify"
     }
   },
-  "description": "Agent Lab is a consulting agency to content creators transforming into an AI Native Agency.",
+  "description": "Predictive Opportunity Intelligence Dashboard. Predict federal business and contracting opportunities from public open data, synthesized by Gemini AI.",
   "appearance": {
     "default": "light"
   }

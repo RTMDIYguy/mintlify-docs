@@ -1,94 +1,111 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
+title: "Development commands and workflow"
+description: "Reference for Agent Lab pnpm commands: dev server, type checks, tests, builds, Drizzle migrations, formatting, and change-control verification."
 ---
 
 <Info>
   **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
+  - Node.js 20 or higher
+  - pnpm installed globally
+  - A local clone of `agentlab` with dependencies installed (`pnpm install`)
 </Info>
 
-Follow these steps to install and run Mintlify on your operating system.
+If you have not run the app yet, start with the [Quickstart](/quickstart).
+
+## Everyday commands
+
+All development commands run through `pnpm`.
 
 <Steps>
-<Step title="Install the Mintlify CLI">
+  <Step title="Start the dev server">
+    ```bash
+    pnpm dev
+    ```
 
-```bash
-npm i -g mint
-```
-</Step>
+    Runs the Express/tRPC server under `tsx watch` and serves the Vite React client. The server restarts on file changes.
+  </Step>
+  <Step title="Type-check the project">
+    ```bash
+    pnpm check
+    ```
 
-<Step title="Preview locally">
+    Runs `tsc --noEmit` across the client, server, and shared code. Use this before opening a pull request.
+  </Step>
+  <Step title="Run tests">
+    ```bash
+    pnpm test
+    ```
 
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
+    Executes the Vitest suite once. Add `--watch` locally when iterating on a single test file.
+  </Step>
+  <Step title="Build for production">
+    ```bash
+    pnpm build
+    ```
 
-```bash
-mint dev
-```
-
-A local preview of your documentation will be available at `http://localhost:3000`.
-
-</Step>
+    Builds the client with Vite and bundles the server with esbuild into `dist/`.
+  </Step>
 </Steps>
 
-## Custom ports
+## Repository layout
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+| Path | Purpose |
+| --- | --- |
+| `src/` | React client. |
+| `server/` | Express and tRPC server, plus backend modules. |
+| `shared/` | Types and constants shared between client and server. |
+| `docs/operations/` | Operating architecture, change-control register, workflow registry, and handoff docs. |
+| `workflows/` | Imported workflow sources and client-facing workflow packages. |
+| `scripts/` | Repo utilities, including `verify-change-control.mjs`. |
+| `content/` | CMS-managed site content. |
+| `drizzle/` | Drizzle schema and generated SQL migrations. |
 
-```bash
-mint dev --port 3333
-```
+## Database migrations
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
-
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
-
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
-
-```bash
-npm mint update
-```
-
-## Validating links
-
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+The database is managed with [Drizzle ORM](https://orm.drizzle.team/). Schema and generated SQL migrations live under `drizzle/`. To generate a new migration from schema changes and apply it locally, run:
 
 ```bash
-mint broken-links
+pnpm db:push
 ```
 
-## Deployment
+This runs `drizzle-kit generate` followed by `drizzle-kit migrate`.
 
-If the deployment is successful, you should see the following:
+## Change control
 
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
+Agent Lab tracks meaningful changes to operating materials in `docs/operations/change-control-register.md`. Log an entry whenever you change:
 
-## Code formatting
+- workflow packages under `workflows/`
+- operating docs under `docs/operations/`
+- agent prompts
+- tracker schemas
+- kit manifests
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+Before marking a workflow-package change complete, run:
+
+```bash
+pnpm change-control:check
+```
+
+This executes `scripts/verify-change-control.mjs`, which fails if a tracked change is missing from the register. Fix any reported gaps before shipping.
+
+## Formatting
+
+The repo uses Prettier. Format the whole tree with:
+
+```bash
+pnpm format
+```
 
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
-
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
+  <Accordion title="`pnpm dev` fails with a Node version error">
+    Agent Lab targets Node.js 20 or higher. Check your version with `node --version` and upgrade if needed. Tools like `nvm` or `fnm` make it easy to switch versions per project.
   </Accordion>
-
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
+  <Accordion title="`pnpm change-control:check` reports an unlogged change">
+    Add an entry describing the change to `docs/operations/change-control-register.md`, then rerun the command. If the change should be deferred, move it to `docs/operations/scheduled-change-queue.md` instead.
+  </Accordion>
+  <Accordion title="Drizzle migration fails to apply">
+    Confirm your database connection settings match `drizzle.config.ts` and that no earlier migration is pending. Regenerate with `pnpm db:push` after fixing the schema.
   </Accordion>
 </AccordionGroup>
-
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).

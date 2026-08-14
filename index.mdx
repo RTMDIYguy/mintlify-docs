@@ -56,3 +56,64 @@ It is a thin, sellable vertical slice across founder intake, signal capture, con
 <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
   Get the docs site running locally and start editing.
 </Card>
+title: "Predictive Opportunity Intelligence Dashboard overview"
+description: "Predict federal business and contracting opportunities from public open data sources, synthesized and ranked by Gemini AI in a full-stack dashboard."
+---
+
+## Overview
+
+The **Predictive Opportunity Intelligence Dashboard** is a full-stack analytics application. It is also known as *Market Marksman* and the *Federal Signal Analytics Platform*. It surfaces business and government contracting opportunities from United States federal open data. It ingests weak signals across scientific, regulatory, financial, and procurement sources. Google's Gemini models then synthesize those signals into predictive intelligence reports you can act on.
+
+Use it when you need to:
+
+- Track early technology, regulatory, and grant signals across federal agencies.
+- Identify emerging contracting and commercialization opportunities before they hit mainstream channels.
+- Turn raw open data into structured predictions with technology readiness levels (TRL), market timing horizons, and recommended actions.
+
+## Key features
+
+<Columns cols={2}>
+  <Card title="Multi-source federal data ingestion" icon="database">
+    Direct integrations with ClinicalTrials.gov, openFDA, USASpending.gov, SAM.gov, arXiv, SEC EDGAR, and USPTO open data.
+  </Card>
+  <Card title="Signal processing sandbox" icon="sliders">
+    Filter, toggle, and analyze weak signals across technology, regulatory, grant, and commercialization vectors.
+  </Card>
+  <Card title="Gemini AI strategic synthesis" icon="sparkles">
+    Generate predictive intelligence reports with TRL scores, market timing horizons, and recommended actions.
+  </Card>
+  <Card title="Zero-config public APIs" icon="key">
+    Query the major federal datasets out of the box. Optional keys unlock higher rate limits on openFDA and direct SAM.gov access.
+  </Card>
+</Columns>
+
+## Federal open data sources
+
+| Source | Auth required | What it provides |
+| :--- | :---: | :--- |
+| **ClinicalTrials.gov** | No | Phase I–IV study registrations, sponsor funding, pipeline progress |
+| **USASpending.gov** | No | Prime contracts, grant awards, federal obligations |
+| **arXiv** | No | Scientific pre-prints in AI, biotech, quantum computing, and robotics |
+| **USPTO** | No | Patent applications, granted claims, and emerging innovation filings |
+| **SEC EDGAR** | No | 10-K/10-Q disclosures and material corporate R&D investments |
+| **openFDA** | Optional | Adverse events, drug approvals, and medical device recalls (higher rate limits with a free key) |
+| **SAM.gov** | Optional | Federal solicitations and contract opportunities (fallback signals included; optional key for direct API) |
+
+## Tech stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Framer Motion, Lucide React icons, and Recharts for interactive charts.
+- **Backend**: Express on Node.js with Vite development middleware.
+- **Data & auth**: Firebase for hosting configuration and Firestore for persistence.
+- **AI engine**: Google GenAI SDK (`@google/genai`) using Gemini models for cross-domain signal synthesis.
+- **Build**: Vite for the client bundle and `esbuild` for the production CommonJS server (`dist/server.cjs`).
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get the dashboard running locally with a Gemini API key.
+  </Card>
+  <Card title="Local development" icon="pen-to-square" href="/development">
+    Editor setup, environment variables, and dev workflow.
+  </Card>
+</Columns>
