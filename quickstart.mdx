@@ -40,7 +40,7 @@ Copy the example file and fill in your keys:
 cp .env.example .env
 ```
 
-At a minimum, set `GEMINI_API_KEY`. `APP_URL` is auto-injected when running on Cloud Run, but you can set it manually for local testing.
+At a minimum, set `GEMINI_API_KEY`. `APP_URL` is auto-injected when running on Cloud Run, but you can set it manually for local testing. The Express server also honors `PORT` (default `3000`), which Cloud Run sets automatically.
 
 ```env .env
 # Required — used by the server-side Gemini proxy
@@ -48,6 +48,9 @@ GEMINI_API_KEY="your-gemini-api-key"
 
 # URL where this instance is reachable. Defaults to http://localhost:3000 locally.
 APP_URL="http://localhost:3000"
+
+# Optional — override the port the Express server listens on. Defaults to 3000.
+PORT=3000
 
 # Optional — raises rate limits on the corresponding federal APIs
 USPTO_API_KEY=
@@ -105,7 +108,7 @@ npm start
 ```
 
 - `npm run build` runs `vite build` to bundle the React client and `esbuild` to compile the Express server to `dist/server.cjs`.
-- `npm start` boots the compiled server (`node dist/server.cjs`). By default it also listens on port 3000.
+- `npm start` boots the compiled server (`node dist/server.cjs`). It listens on `PORT` if set, otherwise `3000`.
 
 Use `npm run lint` (`tsc --noEmit`) to type-check the codebase before shipping.
 
