@@ -87,8 +87,8 @@ Logging in with an email that has no account does not fail. Instead of returning
 The result is the same as signing up first and then logging in. Users can skip the sign-up form entirely and go straight to the login page.
 
 <Note>
-  The display name for an auto-provisioned account is derived from the email
-  address. For example, `ada.lovelace@example.com` becomes "Ada Lovelace". Users
+  Agent Lab derives the display name for an auto-provisioned account from the
+  email address. For example, `ada.lovelace@example.com` becomes "Ada Lovelace". Users
   can pass an explicit `name` through [sign-up](#sign-up) instead if they want
   full control over it.
 </Note>
@@ -137,5 +137,5 @@ Returns `200` with `{ "success": true }`.
 ## Sessions
 
 - Sessions last one year from sign-up or sign-in.
-- The session token is delivered as an HTTP cookie and is also accepted as a `Bearer` token in the `Authorization` header.
+- Agent Lab delivers the session token as an HTTP cookie and also accepts it as a `Bearer` token in the `Authorization` header.
 - Signing in again refreshes the user's last-signed-in timestamp.
