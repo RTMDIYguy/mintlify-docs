@@ -1,0 +1,75 @@
+---
+title: "Agency Command Center"
+description: "Operate the URC agency from one authenticated cockpit: dispatch DAG workflows, monitor the agent swarm, clear the approval queue, and command the Orchestrator in natural language."
+---
+
+The Agency Command Center is the central operations cockpit for the Agent Lab platform. From a single page you can launch workflow runs into the execution engine, watch the status of every swarm agent, approve or reject runs that pause for human sign-off, and hand tasks to the Ops Orchestrator in plain English.
+
+Use the Command Center when you are the operator on duty. It replaces jumping between the workflows list, the runs log, and the agents roster with one live view of the whole operating system.
+
+## Prerequisites
+
+- An Agent Lab account. The Command Center requires authentication. If you open it while signed out, Agent Lab redirects you to the login page.
+- At least one deployed workflow if you want to dispatch runs. Without workflows the launcher shows "No workflows configured."
+
+## Open the Command Center
+
+Sign in, then navigate to `/command-center` in the web app.
+
+The header confirms the page is connected to the live runtime and shows the AI Studio mobile bridge status. The **Refresh** button re-fetches workflows, agents, and runs on demand. Run data also refreshes automatically every 5 seconds, so the approval queue stays current without manual refreshes.
+
+Below the header, the **Operating Focus & Today's Top Actions** card lists the current operational directives derived from the URC Agency Operating Manual, so every session starts from the same priorities.
+
+## The four panels
+
+### Deployable workflows & SOP playbooks
+
+The playbook launcher lists every active DAG workflow with its name, description, trigger type, and success rate. Click **Execute Run** on any card to dispatch that workflow into the execution engine immediately.
+
+Each dispatch calls the run trigger endpoint with the Command Center recorded as the trigger source:
+
+```bash
+POST /api/workflows/{workflowId}/run
+Content-Type: application/json
+
+{ "triggerSource": "CommandCenter_UI" }
+```
+
+A toast confirms when the run is initiated, and the new run appears in the runs feed on the next 5-second refresh.
+
+### Swarm agents
+
+The swarm matrix shows every agent node registered on the platform. Each row displays the agent's name, role, base model, and uptime. A pulsing green dot marks agents with `active` status; a gray dot marks idle or offline nodes. Use this panel to confirm the swarm is healthy before dispatching high-volume work.
+
+### Approval queue
+
+Some workflow runs pause mid-execution for human-in-the-loop sign-off and enter the `paused_for_approval` state. The approval queue surfaces every paused run with its workflow ID and run ID, plus two actions:
+
+- **Approve** resumes the run from the paused step (`POST /api/runs/{runId}/approve`).
+- **Reject** cancels the run (`POST /api/runs/{runId}/reject`).
+
+When nothing is pending, the panel shows "All systems autonomous." Check this queue first each session. Paused runs block their downstream steps until you act.
+
+### Ops Orchestrator terminal
+
+The terminal at the bottom of the page is a natural-language command line into the Orchestrator, powered by Google Gemini 2.5 Flash. Type an operational task and press **Send**. For example:
+
+```text
+Run lead enrichment for Kansas City founders
+```
+
+The Orchestrator can dispatch cross-department tasks, synthesize new DAG workflows, or answer questions about real-time platform state. Each message posts to `POST /api/orchestrator/chat` and the reply streams back into the message feed with a timestamp. If the Orchestrator cannot complete a command, it reports the error in the feed and continues operating in fallback mode.
+
+## When to use each panel
+
+| You want to | Use |
+| --- | --- |
+| Run a known SOP playbook now | Playbook launcher |
+| Check whether agents are online before dispatching work | Swarm agents |
+| Unblock a run waiting on human sign-off | Approval queue |
+| Dispatch an ad-hoc task or draft a new workflow in plain English | Orchestrator terminal |
+
+## Related pages
+
+- [Workflow packages overview](/workflows/overview) for how kits and workflows are organized.
+- [Founder Signal System](/workflows/founder-signal-system) for the flagship starter package you can run through the Command Center.
