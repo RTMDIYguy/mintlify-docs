@@ -43,6 +43,12 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "platform/command-center"
+            ]
+          },
+          {
             "group": "Workflow packages",
             "pages": [
               "workflows/overview"
