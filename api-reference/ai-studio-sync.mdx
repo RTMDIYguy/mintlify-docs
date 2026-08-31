@@ -1,0 +1,173 @@
+---
+title: 'AI Studio mobile sync and ingestion API'
+description: 'Bidirectional bridge between AgentLab OS and the AI Studio mobile dashboard: state export, roaming data ingestion, remote actions, and push webhooks.'
+---
+
+## Overview
+
+The AI Studio mobile sync API connects AgentLab OS to the AI Studio mobile dashboard in both directions. It exposes four endpoints:
+
+- `GET /api/sync/state` exports the live operational state of AgentLab OS to your mobile dashboard.
+- `POST /api/sync/ingest` ingests roaming and field data (leads, voice notes, observations, quick tasks) into AgentLab OS.
+- `POST /api/sync/action` executes remote actions such as triggering a workflow or approving a paused run.
+- `POST /api/aistudio/webhook/register` registers a mobile callback URL so AgentLab OS pushes live updates back to AI Studio.
+
+Use this API when you capture data or need to control workflows away from your desk. Each `/api/sync/*` endpoint is also available under an `/api/aistudio/*` alias (`/api/aistudio/state`, `/api/aistudio/ingest`, `/api/aistudio/action`). Both paths call the same handler.
+
+## Authentication
+
+Requests are scoped to a workspace by the tenant middleware:
+
+- Send a Bearer JWT in the `Authorization` header. AgentLab resolves the workspace from the token's `email` claim.
+- Without a token, send an `X-Workspace-Id` header to select a workspace directly. If the header is omitted, requests fall back to the default workspace.
+
+## Export operational state
+
+`GET /api/sync/state` returns a snapshot of the workspace for the mobile dashboard: system health, workflow metrics, deployed workflows, runs paused for approval, recent audit logs, and the last 10 roaming ingestions.
+
+```bash
+curl https://your-agentlab-host/api/sync/state \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Response (`200`):
+
+```json
+{
+  "version": "2.0.0-mobile-sync",
+  "syncedAt": "2026-08-31T14:02:11.000Z",
+  "workspaceId": "00000000-0000-0000-0000-000000000001",
+  "systemHealth": {
+    "status": "nominal",
+    "saifGuardrailsActive": true,
+    "queueLoad": 2
+  },
+  "metrics": {
+    "activeTasks": 2,
+    "pendingApprovalsCount": 1,
+    "totalWorkflows": 4
+  },
+  "workflows": [],
+  "pendingApprovals": [],
+  "recentAuditLogs": [],
+  "recentRoamingIngestions": []
+}
+```
+
+Poll this endpoint for a manual sync, or register a webhook (below) to receive pushes instead. The endpoint returns `500` if the state cannot be compiled.
+
+## Ingest roaming data
+
+`POST /api/sync/ingest` records mobile-captured data in AgentLab OS. Every ingestion is written to the audit log and can optionally trigger a workflow run.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `source` | string | Origin label. Defaults to `AI_STUDIO_MOBILE`. |
+| `dataType` | string | One of `lead`, `voice_note`, `signal`, `observation`, `task_dispatch`, `telemetry`, `custom`. Defaults to `observation`. |
+| `payload` | object | Arbitrary data captured in the field. |
+| `notes` | string | Optional free-text notes merged into the payload. |
+| `triggerWorkflowId` | string | Optional workflow ID. When set, AgentLab creates a pending run with the payload as initial context. |
+| `autoExecute` | boolean | When `true` and a workflow was triggered, AgentLab processes the pending run queue immediately instead of waiting for the scheduler. Defaults to `false`. |
+
+```bash
+curl -X POST https://your-agentlab-host/api/sync/ingest \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dataType": "lead",
+    "payload": { "company": "Acme Corp", "contact": "jane@acme.com" },
+    "notes": "Met at trade show booth 12",
+    "triggerWorkflowId": "wf_123",
+    "autoExecute": true
+  }'
+```
+
+Response (`201`):
+
+```json
+{
+  "success": true,
+  "message": "Roaming data successfully ingested into AgentLab OS.",
+  "ingestionId": "ing_a1b2c3d4e5f6a7b8",
+  "receivedAt": "2026-08-31T14:05:00.000Z",
+  "dataType": "lead",
+  "status": "routed_to_workflow",
+  "routedRunId": "8f14e45f-..."
+}
+```
+
+`status` is `ingested` when no workflow was triggered and `routed_to_workflow` when the entry started a run. After each ingestion, AgentLab dispatches a `ROAMING_DATA_INGESTED` event to all registered mobile webhooks for the workspace.
+
+## Execute remote actions
+
+`POST /api/sync/action` runs a command against the workspace from the mobile dashboard. Pass an `action` field plus the parameters that action requires:
+
+| Action | Required field | Effect |
+| :--- | :--- | :--- |
+| `trigger_workflow` | `workflowId` | Creates a pending run (optional `payload` becomes the initial context) and processes the run queue immediately. |
+| `approve_run` | `runId` | Resumes a run that is paused for approval and processes the run queue. |
+| `reject_run` | `runId` | Marks the run as failed with the reason "Rejected via AI Studio Mobile Dashboard". |
+
+```bash
+curl -X POST https://your-agentlab-host/api/sync/action \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "action": "approve_run", "runId": "8f14e45f-..." }'
+```
+
+Response (`200`):
+
+```json
+{
+  "success": true,
+  "message": "Run 8f14e45f-... approved and resumed from mobile interface."
+}
+```
+
+The endpoint returns `400` for an unknown action or a missing required field, and `503` if the database is unavailable.
+
+## Register a mobile webhook
+
+`POST /api/aistudio/webhook/register` subscribes a callback URL to workspace events so AgentLab pushes updates to your mobile dashboard without polling.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `endpointUrl` | string | Required. HTTP or HTTPS URL that receives event POSTs. |
+| `deviceLabel` | string | Optional label for the device. Defaults to `AI Studio Mobile Client`. |
+
+```bash
+curl -X POST https://your-agentlab-host/api/aistudio/webhook/register \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpointUrl": "https://my-dashboard.example.com/hooks/agentlab",
+    "deviceLabel": "Pixel field device"
+  }'
+```
+
+Response (`201`):
+
+```json
+{
+  "success": true,
+  "message": "Mobile webhook registered. AgentLab OS will push live updates to your dashboard.",
+  "subscriberId": "sub_a1b2c3d4e5f6",
+  "endpointUrl": "https://my-dashboard.example.com/hooks/agentlab"
+}
+```
+
+AgentLab delivers events as JSON POSTs to the registered URL:
+
+```json
+{
+  "event": "ROAMING_DATA_INGESTED",
+  "timestamp": "2026-08-31T14:05:01.000Z",
+  "data": { "ingestionId": "ing_a1b2c3d4e5f6a7b8" }
+}
+```
+
+The endpoint returns `400` if `endpointUrl` is missing or does not start with `http`.
+
+<Note>
+  Webhook subscriptions are held in server memory. Re-register your endpoint after a server restart.
+</Note>

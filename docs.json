@@ -96,7 +96,8 @@
           {
             "group": "Integrations",
             "pages": [
-              "api-reference/government-apis"
+              "api-reference/government-apis",
+              "api-reference/ai-studio-sync"
             ]
           }
         ]
