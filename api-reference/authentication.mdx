@@ -5,7 +5,7 @@ description: 'Sign up, sign in, and manage sessions with the native Agent Lab au
 
 ## Overview
 
-Agent Lab ships native authentication endpoints for email/password sign-up and sign-in, Google sign-in, session lookup, and logout. Successful authentication sets a session cookie that stays valid for one year. Endpoints also accept the session token as a `Bearer` token in the `Authorization` header.
+Agent Lab ships native authentication endpoints for email/password sign-up and sign-in, Google sign-in, session lookup, and logout. Successful authentication sets a session cookie that stays valid for one year. Sign-up, login, and Google sign-in responses also return the session token in the response body, so clients can fall back to sending it as a `Bearer` token in the `Authorization` header when cookies are unavailable.
 
 Every new account gets its own personal workspace. Agent Lab creates the workspace automatically and assigns the user the `owner` role in it. This happens on sign-up, on first Google sign-in, and on first email login (see [First-login auto-provisioning](#first-login-auto-provisioning)).
 
@@ -40,6 +40,7 @@ A successful response returns `200` with the new user and sets the session cooki
 ```json
 {
   "success": true,
+  "token": "<session-token>",
   "user": {
     "id": "…",
     "openId": "usr_…",
@@ -108,7 +109,7 @@ curl -X POST https://your-app-domain/api/auth/google \
   -d '{"email": "ada@example.com", "name": "Ada"}'
 ```
 
-Returns `200` with the same `user` shape as sign-up and sets the session cookie.
+Returns `200` with the same `token` and `user` shape as sign-up and sets the session cookie.
 
 ## Get the current user
 
@@ -139,3 +140,23 @@ Returns `200` with `{ "success": true }`.
 - Sessions last one year from sign-up or sign-in.
 - Agent Lab delivers the session token as an HTTP cookie and also accepts it as a `Bearer` token in the `Authorization` header.
 - Signing in again refreshes the user's last-signed-in timestamp.
+
+### Session cookie behavior
+
+Agent Lab adapts the session cookie to the connection:
+
+- Over HTTPS, Agent Lab sets the cookie with `Secure` and `SameSite=None`, so cross-site embeds keep working.
+- Over plain HTTP, such as `localhost` during local development, Agent Lab sets `SameSite=Lax` without `Secure`. Browsers reject `Secure` cookies on insecure connections, so this fallback keeps sessions working locally.
+
+The cookie is always `HttpOnly` and scoped to the whole site.
+
+### Bearer token fallback
+
+Sign-up, login, and Google sign-in responses include the session token as a top-level `token` field. Store it and send it in the `Authorization` header when cookies are unavailable, for example in embedded webviews or scripted API calls:
+
+```bash
+curl https://your-app-domain/api/auth/me \
+  -H "Authorization: Bearer <token-from-login-response>"
+```
+
+The cookie and the bearer token carry the same session. You only need one of them per request.
