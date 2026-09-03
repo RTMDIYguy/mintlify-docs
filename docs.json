@@ -61,6 +61,12 @@
             "pages": [
               "workflows/founder-signal-system"
             ]
+          },
+          {
+            "group": "Swarm operations",
+            "pages": [
+              "agents/managing-agents"
+            ]
           }
         ]
       },
@@ -91,6 +97,12 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Platform API",
+            "pages": [
+              "api-reference/swarm-agents"
             ]
           },
           {

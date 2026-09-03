@@ -1,0 +1,52 @@
+---
+title: "Managing swarm agents"
+description: "Monitor live agents, deploy new agents to the swarm, and pause or resume individual nodes from the Agents page."
+---
+
+The Agents page shows the live state of your autonomous agent swarm. It reads directly from the swarm API, so the cards reflect the agents currently registered to your workspace rather than static placeholders. From this page you can deploy a new agent, pause a running agent, and resume a paused one.
+
+Use this page when you need to:
+
+- Check which agents are active, idle, or paused right now.
+- Add a new specialized agent to the swarm.
+- Take an agent offline temporarily without removing it.
+
+## Prerequisites
+
+- You are signed in. The Agents page only loads swarm data for an authenticated user.
+- Your workspace has access to the swarm API. All actions below call the [swarm agents API](/api-reference/swarm-agents) under the hood.
+
+## View live agent status
+
+Open the Agents page to see one card per agent. Each card shows:
+
+- **Name and role**: the agent's identifier and its specialization, such as Lead Enrichment Specialist or Full-Stack Software Engineer.
+- **Status**: `active`, `idle`, `paused`, or `error`.
+- **Uptime**: the agent's reported availability.
+- **Tasks completed**: a running count of finished tasks.
+- **Base model**: the LLM the agent runs on.
+
+Use the filter buttons at the top of the page to switch between **All**, **Active**, and **Paused / Idle** views. The active count next to each filter updates as agents change state.
+
+## Deploy a new agent
+
+1. On the Agents page, select **Deploy New Agent**.
+2. In the **Deploy Agent to Swarm** modal, enter a **Codename** for the agent, for example `Inbound-SDR-Node-03`.
+3. Choose a **Specialized Role** from the list, such as Lead Enrichment Specialist, Founder Outreach Matrix Copywriter, Full-Stack Software Engineer, Financial Reconciliation Auditor, Autonomous Task Router, or SEO & Authority Content Writer.
+4. Choose a base LLM. Options include Gemini 2.5 Flash (ultra-fast, low latency), Gemini 1.5 Pro (deep reasoning), Claude 3.7 Sonnet (advanced coding), and GPT-4o Mini (cost optimized). If you skip this step, the agent deploys on `gemini-2.5-flash`.
+5. Select **Confirm & Launch**.
+
+The new agent joins the swarm with status `active` and appears at the top of the agent list. A confirmation toast names the deployed agent. Name and role are required; the deploy request fails with a `400` if either is missing.
+
+## Pause or resume an agent
+
+Each agent card has a toggle action:
+
+- **Pause Node** stops an `active` agent and sets its status to `paused`.
+- **Activate** returns a `paused` agent to `active`.
+
+Pausing does not delete the agent or its task history. Use it to take a node offline while you adjust its workload or investigate errors. A toast confirms the new status after each toggle.
+
+## Related
+
+- [Swarm agents API](/api-reference/swarm-agents): endpoint details for listing, deploying, and toggling agents programmatically.
