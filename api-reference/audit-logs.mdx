@@ -1,0 +1,139 @@
+---
+title: "Audit logs"
+description: "List audit events, fetch governance telemetry stats, export logs to CSV, and approve or reject pending agent actions."
+---
+
+The audit-log endpoints power the [System Auditing hub](/platform/auditing) and are available for direct integration. All endpoints are scoped to the requesting workspace and live under `/api`.
+
+## List audit logs
+
+```http
+GET /api/audit-logs
+```
+
+Returns up to 100 of the most recent audit events for the workspace, newest first.
+
+### Query parameters
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `status` | string | Filter by event status: `success`, `requires_approval`, `warning`, or `error`. Omit or pass `all` to return every status. |
+| `q` | string | Case-insensitive search across action, agent, message, and model fields. |
+
+### Example request
+
+```bash
+curl "https://your-agentlab-host/api/audit-logs?status=requires_approval&q=triage"
+```
+
+### Example response
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000001",
+  "logs": [
+    {
+      "id": "aud_01_triage",
+      "timestamp": "2026-09-03T14:22:00.000Z",
+      "agent": "Auditor-Bot-9",
+      "action": "System File Triage",
+      "status": "requires_approval",
+      "model": "gpt-4o",
+      "latencyMs": 340,
+      "tokensTotal": 1420,
+      "cost": "0.007100",
+      "message": "Proposed archiving 4 legacy spreadsheets from 2024. Waiting for operator review.",
+      "policyChecks": {
+        "saifPassed": true,
+        "piiDetected": 0,
+        "budgetThresholdPassed": true
+      },
+      "details": { "destination": "/archive" }
+    }
+  ],
+  "totalCount": 1
+}
+```
+
+Each log entry includes SAIF policy results in `policyChecks`: whether the SAIF check passed, how many PII items were detected and redacted, and whether the run stayed under the budget threshold.
+
+## Get audit stats
+
+```http
+GET /api/audit-logs/stats
+```
+
+Returns aggregate governance telemetry for the workspace. `pendingReviews` counts workflow runs paused with status `paused_for_approval`.
+
+### Example response
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000001",
+  "totalEvents24h": 1248,
+  "pendingReviews": 1,
+  "securityAlerts": 1,
+  "totalCost24h": "0.4821",
+  "saifComplianceRate": "99.8%"
+}
+```
+
+## Export audit logs as CSV
+
+```http
+GET /api/audit-logs/export
+```
+
+Returns the audit log as a CSV file with `Content-Type: text/csv` and a `Content-Disposition` attachment header. The filename is `agentlab-audit-logs-<timestamp>.csv`.
+
+Columns: Log ID, Timestamp, Agent / Source, Action Type, Model, Status, Latency (ms), Tokens Total, Cost ($), SAIF Passed, PII Redactions, and Summary / Message.
+
+```bash
+curl -o audit-logs.csv "https://your-agentlab-host/api/audit-logs/export"
+```
+
+## Approve a pending action
+
+```http
+POST /api/audit-logs/:id/approve
+```
+
+Approves an audit item with status `requires_approval` so the paused agent action can proceed. `id` is the audit log entry ID.
+
+```bash
+curl -X POST "https://your-agentlab-host/api/audit-logs/aud_01_triage/approve"
+```
+
+```json
+{
+  "success": true,
+  "message": "Action aud_01_triage approved by operator."
+}
+```
+
+## Reject a pending action
+
+```http
+POST /api/audit-logs/:id/reject
+```
+
+Rejects an audit item with status `requires_approval` and cancels the pending agent action.
+
+```bash
+curl -X POST "https://your-agentlab-host/api/audit-logs/aud_01_triage/reject"
+```
+
+```json
+{
+  "success": true,
+  "message": "Action aud_01_triage rejected by operator."
+}
+```
+
+## Errors
+
+All endpoints return HTTP `500` with a JSON `error` field if the request fails, for example:
+
+```json
+{ "error": "Failed to fetch audit logs" }
+```
