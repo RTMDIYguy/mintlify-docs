@@ -3,6 +3,14 @@ title: "Agent Lab changelog: weekly features, updates, and fixes"
 description: "Weekly updates on new Agent Lab features, improvements, and fixes, so you can track what shipped and how it affects your workflow."
 ---
 
+## Week of August 29, 2026
+
+### Updates
+
+- **Native sign-up and sign-in.** Agent Lab now handles authentication natively with email/password sign-up and sign-in, Google sign-in, session lookup, and logout. Every new account gets its own personal workspace with the owner role. See [Authentication](/api-reference/authentication) for the endpoints and examples.
+- **Seamless first login.** Logging in with an email that has no account no longer returns an "account not found" error. Agent Lab creates the account and a personal workspace on the spot and signs you in. See [First-login auto-provisioning](/api-reference/authentication#first-login-auto-provisioning) for details.
+- **More reliable sessions.** Session cookies now adapt to the connection, so signing in works on localhost and other plain-HTTP setups during development. Sign-up, login, and Google sign-in responses also return the session token directly, so clients can authenticate with a bearer token when cookies are unavailable. See [Sessions](/api-reference/authentication#sessions) for details.
+
 ## Week of August 22, 2026
 
 ### Updates
