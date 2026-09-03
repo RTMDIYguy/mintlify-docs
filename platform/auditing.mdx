@@ -1,0 +1,60 @@
+---
+title: "System Auditing hub"
+description: "Monitor agent activity, review SAIF policy telemetry, approve or reject pending agent actions, and export audit logs to CSV."
+---
+
+The System Auditing hub is the compliance and governance view of Agent Lab. Open it at `/auditing` in the app. It shows every logged agent action alongside SAIF policy enforcement results, model telemetry, and a Human-in-the-Loop review queue for actions that need operator sign-off.
+
+## Who this is for
+
+Use the Auditing hub when you need to:
+
+- Verify what your agents did, when, and at what cost.
+- Review and approve (or reject) agent actions that paused for human approval.
+- Confirm SAIF guardrails ran, including PII redactions and budget checks.
+- Export an audit trail as CSV for compliance reviews or offline analysis.
+
+## Telemetry summary
+
+Four summary cards sit at the top of the hub:
+
+| Card | What it shows |
+| --- | --- |
+| **Total Events (24h)** | Count of audit events recorded for your workspace. |
+| **Pending Reviews** | Workflow runs paused with status `paused_for_approval`, waiting for an operator. |
+| **SAIF Compliance** | Percentage of events that passed SAIF policy checks. |
+| **Security Alerts** | Open security alerts that need attention. |
+
+The cards refresh from live telemetry. Approving or rejecting an action recalculates the counts immediately.
+
+## Audit event fields
+
+Each entry in the log records:
+
+- **Agent / source** — the agent that performed the action, or `System` for platform events.
+- **Action type and status** — one of `success`, `requires_approval`, `warning`, or `error`.
+- **Model telemetry** — the model used, latency in milliseconds, total tokens, and cost in dollars.
+- **Policy checks** — SAIF pass/fail, the number of PII items detected and redacted, and whether the budget threshold passed.
+- **Message and details** — a human-readable summary plus the structured action payload.
+
+## Filtering and search
+
+Filter the log with the status tabs: **All Events**, **Pending Approval**, **Successful**, **Warnings**, and **Errors**. Use the search bar to match against agent name, action type, message, or model. Filters and search combine, so you can search within a single status.
+
+## Approving or rejecting actions
+
+Events with status `requires_approval` show **Approve** and **Reject** buttons inline. This is the Human-in-the-Loop checkpoint for agent actions that Agent Lab paused before execution, such as file archival or destructive operations.
+
+1. Open the **Pending Approval** tab to see only items waiting for review.
+2. Read the event message and details to understand what the agent proposed.
+3. Select **Approve** to let the action proceed, or **Reject** to cancel it.
+
+Agent Lab records the decision in the audit log and updates the **Pending Reviews** count.
+
+## Exporting to CSV
+
+Select **Export Audit CSV** in the page header to download the audit log. The CSV includes one row per event with the log ID, timestamp, agent, action type, model, status, latency, token count, cost, SAIF pass/fail, PII redaction count, and message. The file downloads as `agentlab-audit-logs-<timestamp>.csv`.
+
+## Programmatic access
+
+Every view in the hub is backed by the audit-log API. Use the endpoints directly for dashboards, alerting, or scripted approvals. See the [audit logs API reference](/api-reference/audit-logs).
