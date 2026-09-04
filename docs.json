@@ -85,6 +85,12 @@
             ]
           },
           {
+            "group": "SDKs",
+            "pages": [
+              "api-reference/python-sdk"
+            ]
+          },
+          {
             "group": "Endpoint examples",
             "pages": [
               "api-reference/endpoint/get",
