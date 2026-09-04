@@ -1,0 +1,148 @@
+---
+title: 'Marketplace endpoints'
+description: 'List catalog items and mount or unmount department playbooks with the Agent Lab Marketplace API.'
+---
+
+## Overview
+
+The Marketplace API powers the in-app catalog described in the [Marketplace guide](/marketplace/overview). It returns the full catalog of playbooks, apps, and books, and it manages which department playbooks are mounted (active) in a workspace.
+
+All endpoints are scoped to the requesting workspace. Every endpoint returns `200` on success and `500` with an `error` field if the operation fails.
+
+## List marketplace items
+
+```http
+GET /api/marketplace/items
+```
+
+Returns the full catalog for the current workspace. Playbook entries include per-workspace mount state; apps and books are the same for every workspace.
+
+```bash
+curl https://your-instance.example.com/api/marketplace/items
+```
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000001",
+  "playbooks": [
+    {
+      "id": "mkt-playbook",
+      "category": "playbooks",
+      "name": "Marketing (MKT) Playbook",
+      "department": "Dept MKT • 9 DAG Workflows",
+      "departmentCode": "mkt",
+      "price": "$99.00/mo",
+      "workflowsCount": 9,
+      "automationRate": "90%",
+      "cycleTimeReduction": "4.5 hrs/day",
+      "tags": ["Lead Gen", "Content", "Nurture", "DAG Orchestration"],
+      "isMounted": true,
+      "status": "Mounted & Active",
+      "statusVariant": "default"
+    }
+  ],
+  "apps": [
+    {
+      "id": "app-leadpulse",
+      "category": "apps",
+      "name": "LeadPulse",
+      "status": "Live (Beta)",
+      "launchUrl": "https://leadpulse-ai-lead-accuracy-enrichment-engine.ai.studio/",
+      "isExternal": true,
+      "isBetaOnly": true,
+      "betaTierRequired": "Explorer (Tier 1)"
+    }
+  ],
+  "books": [
+    {
+      "id": "book-soe",
+      "category": "books",
+      "name": "Startup Operational Excellence",
+      "price": "$19.99",
+      "gumroadUrl": "https://bossrob.gumroad.com/l/soe"
+    }
+  ],
+  "totalCount": 20,
+  "mountedCount": 2
+}
+```
+
+Key response fields:
+
+- `playbooks[].isMounted`: whether the playbook is active in the workspace. Mounted playbooks report `status: "Mounted & Active"`; unmounted playbooks report `status: "Available to Mount"`.
+- `apps[].launchUrl`: the destination the app card opens. External apps (`isExternal: true`) open in a new tab; in-app destinations (for example, the Founder Signal System's diagnostic intake) are app routes.
+- `apps[].isBetaOnly` and `apps[].betaTierRequired`: beta gating. The client checks enrollment before launching beta-only apps.
+- `books[].gumroadUrl`: the Gumroad product page for the book.
+- `mountedCount`: number of playbooks currently mounted in the workspace.
+
+If the workspace has no subscription records yet, the response seeds the Marketing (`mkt-playbook`) and Operations (`ops-playbook`) playbooks as mounted defaults.
+
+## List packages
+
+```http
+GET /api/marketplace/packages
+```
+
+Alias for `GET /api/marketplace/items`. Returns the same payload.
+
+## Mount a playbook
+
+```http
+POST /api/marketplace/mount/:id
+```
+
+Mounts the playbook identified by `:id` (for example, `sal-playbook`) into the current workspace. If a subscription record already exists, it is reactivated with status `active`; otherwise a new one is created.
+
+```bash
+curl -X POST https://your-instance.example.com/api/marketplace/mount/sal-playbook
+```
+
+```json
+{
+  "success": true,
+  "message": "Playbook sal-playbook successfully mounted to workspace.",
+  "packageId": "sal-playbook",
+  "workspaceId": "00000000-0000-0000-0000-000000000001"
+}
+```
+
+Valid playbook IDs: `mkt-playbook`, `sal-playbook`, `ops-playbook`, `fin-playbook`, `ful-playbook`, `cul-playbook`, `aft-playbook`.
+
+## Subscribe to a package
+
+```http
+POST /api/marketplace/packages/:packageId/subscribe
+```
+
+Alias for `POST /api/marketplace/mount/:id`. Mounts the package identified by `:packageId` and returns the same payload.
+
+## Unmount a playbook
+
+```http
+POST /api/marketplace/unmount/:id
+```
+
+Removes the playbook from the workspace's active entitlements by setting its subscription status to `canceled`. The playbook remains in the catalog and can be mounted again later.
+
+```bash
+curl -X POST https://your-instance.example.com/api/marketplace/unmount/sal-playbook
+```
+
+```json
+{
+  "success": true,
+  "message": "Playbook sal-playbook unmounted from workspace.",
+  "packageId": "sal-playbook",
+  "workspaceId": "00000000-0000-0000-0000-000000000001"
+}
+```
+
+## Error handling
+
+All Marketplace endpoints return `500` with a JSON error body when the operation fails:
+
+```json
+{ "error": "Failed to mount playbook" }
+```
+
+If the database is temporarily unavailable, mount and unmount operations fall back to an in-memory subscription store so the workspace state stays consistent within the running session.

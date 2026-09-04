@@ -1,0 +1,70 @@
+---
+title: "Marketplace: playbooks, apps, and books"
+description: "Browse the Agent Lab Marketplace, mount and unmount department playbooks, launch live ecosystem apps, and review your workspace entitlements."
+---
+
+The Marketplace is the in-app catalog for everything you can add to an Agent Lab workspace. It lists three categories of items:
+
+- **Playbooks**: seven department knowledge packages that unlock automated DAG workflows in Command Center.
+- **Apps**: live ecosystem applications such as Market Marksman, LeadPulse, and Pulse Social.
+- **Books**: digital titles sold through Gumroad.
+
+Use this page to understand how to browse the catalog, mount or unmount a playbook, launch an app, and check which entitlements are active in your workspace. For the underlying HTTP endpoints, see the [Marketplace API reference](/api-reference/marketplace).
+
+## Browsing the catalog
+
+Open the Marketplace page in the app. The catalog loads from `GET /api/marketplace/items` and refreshes every 15 seconds, so mount status stays current without a page reload.
+
+Two controls narrow the catalog:
+
+- **Category tabs**: switch between All, Playbooks, Apps, and Books.
+- **Search**: filters items by name, description, or tag.
+
+Each card shows the item's status badge (for example, `Mounted & Active`, `Available to Mount`, `Live (Beta)`, or `Roadmap (Coming Soon)`), its price, and its tags.
+
+## Department playbooks
+
+Seven knowledge playbooks map to the seven departments of the workflow catalog. Mounting a playbook unlocks its DAG workflows in Command Center for your workspace.
+
+| Playbook | Department code | Workflows | Monthly price |
+| :--- | :--- | :--- | :--- |
+| Marketing | `mkt` | 9 | $99 |
+| Sales | `sal` | 6 | $149 |
+| Operations | `ops` | 8 | $199 |
+| Finance | `fin` | 7 | $149 |
+| Fulfillment | `ful` | 8 | $149 |
+| Culture & Team | `cul` | 4 | $99 |
+| After-Sales & Retention | `aft` | 3 | $99 |
+
+New workspaces start with the Marketing and Operations playbooks mounted by default.
+
+The playbooks correspond to the same seven series described in the [workflow package catalog](/workflows/overview).
+
+### Inspecting a blueprint
+
+Select **Blueprint** on a playbook card to open the blueprint details modal. It shows the playbook's workflow count, automation rate, and cycle-time reduction before you commit to mounting it.
+
+### Mounting a playbook
+
+Select **Mount** on a playbook card. The app calls `POST /api/marketplace/mount/:id` and, on success, the card's status changes to `Mounted & Active` and the playbook's DAG workflows unlock in Command Center.
+
+### Unmounting a playbook
+
+Select **Unmount** on a mounted playbook card. The app calls `POST /api/marketplace/unmount/:id`, which sets the subscription status to `canceled` and removes the playbook from your active workspace entitlements. You can mount it again at any time; mounting reactivates the existing subscription record.
+
+## Live apps and launch behavior
+
+App cards launch directly to their live destinations:
+
+- **Market Marksman** (Standard and Nevada editions) opens its Cloud Run deployment in a new tab.
+- **LeadPulse** opens its AI Studio deployment in a new tab.
+- **Pulse Social** opens its hosted deployment in a new tab.
+- **48-Hour LinkedIn Authority** opens its live n8n tracking sheet in a new tab.
+- **Founder Signal System** routes to the in-app diagnostic intake at [/founder-signal-system](/workflows/founder-signal-system) instead of an external URL.
+- **Books** link to their Gumroad product pages for purchase.
+
+Beta-only apps check your beta enrollment before launching. If you are not enrolled at the required tier, the Marketplace prompts you to enroll in the app's beta program first, then launches the app after enrollment succeeds. Roadmap apps (Market Marksman Investor's, Insurance, and Legal editions) are listed for visibility but cannot be launched yet.
+
+## Workspace entitlements
+
+Select **View Workspace Entitlements** to open the entitlements drawer. It lists every playbook currently mounted in your workspace along with the active entitlement count, so you can audit what your workspace is paying for and unmount anything you no longer need.

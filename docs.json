@@ -49,6 +49,12 @@
             ]
           },
           {
+            "group": "Marketplace",
+            "pages": [
+              "marketplace/overview"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
@@ -91,6 +97,12 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Marketplace",
+            "pages": [
+              "api-reference/marketplace"
             ]
           },
           {
