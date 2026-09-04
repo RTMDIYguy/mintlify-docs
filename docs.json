@@ -94,6 +94,13 @@
             ]
           },
           {
+            "group": "AgentLab OS",
+            "pages": [
+              "api-reference/orchestrator",
+              "api-reference/founder-intake"
+            ]
+          },
+          {
             "group": "Integrations",
             "pages": [
               "api-reference/government-apis"

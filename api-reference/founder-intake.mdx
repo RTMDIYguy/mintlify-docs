@@ -1,0 +1,71 @@
+---
+title: 'Founder Intake API'
+description: 'Qualify founders in the LiveChat widget and capture leads automatically with the founderIntake tRPC router.'
+---
+
+## Overview
+
+The `founderIntake` tRPC router powers the LiveChat widget on the marketing site. It qualifies founders through conversation, recommends an offer, and captures lead details when a name and email are available.
+
+The router exposes two public procedures:
+
+- `founderIntake.respond` generates the next assistant reply in an intake conversation.
+- `founderIntake.captureLead` records a qualified lead and sends intake notifications.
+
+## founderIntake.respond
+
+Takes the conversation so far plus any lead details already collected and returns the next assistant reply. When the LLM is unavailable, the router falls back to a rule-based response that still moves the conversation forward.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `messages` | array | Yes | 1 to 24 chat messages. Each message has `role` (`user` or `assistant`) and `content` (1 to 4000 characters). |
+| `lead` | object | No | Lead context collected so far: `name`, `email`, `company`, `painPoint`, and `interest`, all optional strings. |
+
+### Output
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `reply` | string | The next assistant message to display. |
+| `stage` | string | Conversation stage: `qualify`, `capture`, or `recommend`. |
+| `recommendedOffer` | string or null | Offer the agent recommends, if any. |
+| `recommendedCta` | string or null | Call to action tied to the recommended offer. |
+| `shouldCaptureLead` | boolean | Whether the client should show the lead capture form. |
+| `collected` | object | Lead fields the agent extracted from the conversation. |
+
+If the founder mentions a known offer (Founder Roundtable, Business Systems Diagnostic, or Ownable OS), the router records it as the lead's `interest`.
+
+## founderIntake.captureLead
+
+Records a qualified lead. Creates a contact submission, sends an intake notification email, and sends an auto-reply to the founder.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `name` | string | Yes | At least 2 characters. |
+| `email` | string | Yes | Must be a valid email address. |
+| `company` | string | No | Founder's company. |
+| `painPoint` | string | No | The problem the founder described. |
+| `interest` | string | No | Offer the founder is interested in. |
+
+### Output
+
+```json
+{
+  "success": true,
+  "submissionId": "sub_1788486000000",
+  "message": "Lead captured successfully."
+}
+```
+
+## Auto lead capture in LiveChat
+
+The LiveChat widget shows quick-select interest options (for example, offer names). Selecting an option now sends the choice straight through `founderIntake.respond` as a user message instead of only pre-filling the input. The widget then:
+
+- Records the selection as the lead's `interest` and, if none was set, its `painPoint`.
+- Displays the agent's reply.
+- Opens the lead capture form when the response sets `shouldCaptureLead` or the lead is still missing a name or email.
+
+This means a founder who taps an interest option gets qualified and captured without typing a message.

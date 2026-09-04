@@ -1,0 +1,136 @@
+---
+title: 'Orchestrator API'
+description: 'Synthesize multi-agent DAG workflow proposals with POST /api/orchestrator/chat and run approved proposals in AgentLab OS with POST /api/orchestrator/execute.'
+---
+
+## Overview
+
+The orchestrator powers the Ops Agent, the chat modal available throughout AgentLab. It works in two stages:
+
+1. **Synthesis.** `POST /api/orchestrator/chat` turns a natural-language request into a structured multi-agent DAG workflow proposal.
+2. **Execution.** `POST /api/orchestrator/execute` runs an approved proposal in the AgentLab OS runtime and returns a run record.
+
+Use the chat endpoint when you want the Ops Agent to design a workflow from a plain-English prompt. Use the execute endpoint when a proposal has been reviewed and approved and you want to run it.
+
+## The Ops Agent modal runs real workflows
+
+The Ops Agent modal is no longer a synthesis-only assistant. When the orchestrator returns a workflow proposal, the modal renders it as an actionable DAG plan card with an execution steps checklist and an **Approve & Execute DAG in OS** button.
+
+Clicking the button sends the proposal to `POST /api/orchestrator/execute`. The modal then:
+
+- Shows execution progress while the DAG swarm runs.
+- Marks the plan card as **Executed in OS** with the returned run ID on success.
+- Emits an `agentlab:workflow-executed` browser event so other parts of the OS can react to the completed run.
+
+## POST /api/orchestrator/chat
+
+Synthesizes a workflow proposal from a natural-language prompt. The orchestrator matches the prompt against the URC department playbooks unlocked for your workspace and returns a proposal scoped to the best-fit department.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `prompt` | string | Yes | Natural-language description of what you want to build or automate. |
+| `context` | object | No | Additional key-value context for the orchestrator. |
+
+If `prompt` is missing or not a string, the endpoint returns `400` with an error message.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Sync new HubSpot CRM contacts and deal stages into our tracker"}'
+```
+
+### Response
+
+Returns `200` with a reply and, when a workflow matched, a structured proposal:
+
+```json
+{
+  "reply": "I have synthesized an active multi-agent DAG execution plan...",
+  "proposal": {
+    "id": "WFP-SAL-1024",
+    "name": "HubSpot CRM Contact & Deal Synchronization",
+    "description": "Direct synchronization bridge between HubSpot CRM and AgentLab multi-agent state...",
+    "departmentCode": "sal",
+    "estimatedCostPerRun": 0.02,
+    "estimatedLatencySeconds": 8,
+    "triggerType": "HubSpot Webhook / Scheduled Polling",
+    "guardrails": [
+      "Pre-execution rate-limit check",
+      "Row Level Security (RLS) tenant boundary verification",
+      "PII redaction and GDPR/CCPA scrub before LLM inference",
+      "Human-in-the-loop approval before external dispatch"
+    ],
+    "steps": [
+      { "stepNumber": 1, "type": "trigger", "title": "HubSpot CRM Webhook Ingestion", "detail": "..." },
+      { "stepNumber": 2, "type": "agent", "title": "Sales & CRM Intelligence Agent", "detail": "...", "agentId": "agent-sal-crm" },
+      { "stepNumber": 3, "type": "guardrail", "title": "SAIF Compliance & PII Gate", "detail": "..." },
+      { "stepNumber": 4, "type": "destination", "title": "HubSpot & M365 Commit", "detail": "..." }
+    ],
+    "reply": "..."
+  },
+  "timestamp": "2026-09-04T12:00:00.000Z",
+  "executionMetrics": {
+    "latencyMs": 1240,
+    "tokensUsed": 512,
+    "model": "gemini-2.5-flash"
+  }
+}
+```
+
+Each proposal step is a DAG node with a `type` of `trigger`, `agent`, `guardrail`, or `destination`. Agent steps can carry an `agentId` identifying the assigned specialist agent.
+
+### Prompt matching
+
+When the LLM is unavailable, the orchestrator falls back to keyword matching against the workflow catalog. Recognized themes include CRM and pipeline sync (HubSpot), lead generation and outreach, content creation, finance and runway, client onboarding and fulfillment, and audits and compliance. Prompts that match no theme default to an operations workflow.
+
+## POST /api/orchestrator/execute
+
+Executes an approved workflow proposal in the AgentLab OS runtime. Pass either the full `proposal` object returned by the chat endpoint or a `workflowId` referencing an existing workflow.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `proposal` | object | One of | A workflow proposal object returned by `POST /api/orchestrator/chat`. |
+| `workflowId` | string | One of | ID of an existing workflow to run instead of a proposal. |
+
+Provide at least one of `proposal` or `workflowId`.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/execute \
+  -H "Content-Type: application/json" \
+  -d '{"proposal": {"id": "WFP-SAL-1024", "name": "HubSpot CRM Contact & Deal Synchronization", "departmentCode": "sal", "steps": [...]}}'
+```
+
+### Response
+
+Returns `200` with the run record:
+
+```json
+{
+  "success": true,
+  "runId": "run_1788486000000_a1b2c",
+  "workflowName": "HubSpot CRM Contact & Deal Synchronization",
+  "departmentCode": "SAL",
+  "status": "completed",
+  "timestamp": "2026-09-04T12:00:05.000Z",
+  "executionMetrics": {
+    "latencyMs": 32,
+    "tokensUsed": 480,
+    "model": "gemini-2.5-flash",
+    "saifVerified": true
+  },
+  "summary": "Executed \"HubSpot CRM Contact & Deal Synchronization\" across 4 multi-agent DAG nodes in AgentLab OS with SAIF verification."
+}
+```
+
+| Field | Description |
+| :--- | :--- |
+| `runId` | Unique identifier for this execution run. |
+| `workflowName` | Name of the executed workflow, taken from the proposal or workflow ID. |
+| `departmentCode` | Uppercase department code the run was attributed to. Defaults to `OPS`. |
+| `status` | Run outcome. `completed` on success. |
+| `executionMetrics.saifVerified` | Whether the run passed SAIF compliance verification. |
+| `summary` | Human-readable summary of the run. |
