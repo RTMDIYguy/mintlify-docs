@@ -91,7 +91,7 @@ Alias for `GET /api/marketplace/items`. Returns the same payload.
 POST /api/marketplace/mount/:id
 ```
 
-Mounts the playbook identified by `:id` (for example, `sal-playbook`) into the current workspace. If a subscription record already exists, it is reactivated with status `active`; otherwise a new one is created.
+Mounts the playbook identified by `:id` (for example, `sal-playbook`) into the current workspace. If a subscription record already exists, the API reactivates it with status `active`. Otherwise, the API creates a new record.
 
 ```bash
 curl -X POST https://your-instance.example.com/api/marketplace/mount/sal-playbook
