@@ -1,0 +1,126 @@
+---
+title: "Beta and trials API"
+description: "Check beta program status, enroll in beta apps, and view or extend the 30-day Pro trial."
+---
+
+## Overview
+
+Four endpoints manage the gamified beta program and 30-day Pro trial. All four live under the `/api` base path and are scoped to the calling workspace. For a conceptual walkthrough of tiers, rewards, and the downgrade policy, see [Beta program and trial management](/platform/beta-program-and-trials).
+
+| Method | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `GET` | `/api/beta/status` | Current badge tier, beta points, enrolled apps, and available programs. |
+| `POST` | `/api/beta/enroll/:appId` | Enroll the workspace in a beta app. |
+| `GET` | `/api/trials/status` | Trial plan, days remaining, end date, and downgrade policy. |
+| `POST` | `/api/trials/extend` | Add 14 days to the trial. |
+
+All endpoints return `200` on success and `500` with an `error` message on failure.
+
+## Get beta status
+
+`GET /api/beta/status` returns the workspace's tier, point total, enrolled apps, and every beta program with its tier requirement, reward, and status (`Active`, `Available`, or `Locked`).
+
+```bash
+curl https://your-instance.example.com/api/beta/status
+```
+
+```json
+{
+  "success": true,
+  "isGodmode": false,
+  "currentTier": "Contributor (Tier 2)",
+  "tierLevel": 2,
+  "betaPoints": 350,
+  "enrolledApps": ["app-leadpulse", "app-pulse-social"],
+  "availablePrograms": [
+    {
+      "id": "app-market-marksman",
+      "name": "Market Marksman Beta",
+      "tierRequired": "Contributor (Tier 2)",
+      "reward": "+14 Pro Trial Days on 5 Signal Tests",
+      "status": "Available"
+    },
+    {
+      "id": "agentic-os-v2",
+      "name": "Agentic OS v2 (Autonomous Swarms)",
+      "tierRequired": "Alpha Insider (Tier 3)",
+      "reward": "Direct Access to Multi-Agent Python SDK",
+      "status": "Locked"
+    }
+  ]
+}
+```
+
+Admin users receive `isGodmode: true`, tier level 3 (Alpha Insider), and enrollment in every ecosystem app.
+
+## Enroll in a beta app
+
+`POST /api/beta/enroll/:appId` enrolls the workspace in the beta program for the app identified by `appId` (for example, `app-market-marksman`).
+
+```bash
+curl -X POST https://your-instance.example.com/api/beta/enroll/app-market-marksman
+```
+
+```json
+{
+  "success": true,
+  "message": "Successfully enrolled in app-market-marksman Beta Program!",
+  "appId": "app-market-marksman",
+  "workspaceId": "00000000-0000-0000-0000-000000000001"
+}
+```
+
+## Get trial status
+
+`GET /api/trials/status` returns the trial plan, total and remaining days, projected end date, whether the trial can still be extended, and the downgrade policy.
+
+```bash
+curl https://your-instance.example.com/api/trials/status
+```
+
+```json
+{
+  "success": true,
+  "plan": "Ownable OS (Agentic OS Pro Trial)",
+  "totalTrialDays": 30,
+  "daysRemaining": 18,
+  "trialEndDate": "2026-09-22",
+  "canExtend": true,
+  "downgradePolicy": {
+    "retained": [
+      "1 Active Swarm Agent (Alpha-Node-01)",
+      "5 Daily Autonomous DAG Runs",
+      "Full Access to Workspace Knowledge Base & Saved SOPs",
+      "Exportable Audit Logs & Compliance Reports"
+    ],
+    "paused": [
+      "Multi-Agent Swarm Concurrency (>1 agent)",
+      "Real-Time Automated Background Schedulers",
+      "Beta Ecosystem App Integration Hub"
+    ]
+  }
+}
+```
+
+`canExtend` turns `false` once accumulated extensions reach 28 days.
+
+## Extend the trial
+
+`POST /api/trials/extend` adds 14 days to the workspace trial. The optional `reason` body field records why the extension was granted and defaults to `Founder Beta Extension`.
+
+```bash
+curl -X POST https://your-instance.example.com/api/trials/extend \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Participating in Founder Beta feedback program"}'
+```
+
+```json
+{
+  "success": true,
+  "message": "Trial successfully extended by 14 days!",
+  "addedDays": 14,
+  "totalExtensionDays": 14,
+  "daysRemaining": 32,
+  "reason": "Participating in Founder Beta feedback program"
+}
+```

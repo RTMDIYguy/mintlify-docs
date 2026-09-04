@@ -61,6 +61,12 @@
             "pages": [
               "workflows/founder-signal-system"
             ]
+          },
+          {
+            "group": "Platform",
+            "pages": [
+              "platform/beta-program-and-trials"
+            ]
           }
         ]
       },
@@ -91,6 +97,12 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Beta and trials",
+            "pages": [
+              "api-reference/beta-trials"
             ]
           },
           {
