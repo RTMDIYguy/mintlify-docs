@@ -93,10 +93,10 @@ Executes an approved workflow proposal in the AgentLab OS runtime. Pass either t
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `proposal` | object | No* | A workflow proposal object returned by `POST /api/orchestrator/chat`. |
-| `workflowId` | string | No* | ID of an existing workflow to run instead of a proposal. |
+| `proposal` | object | One of | A workflow proposal object returned by `POST /api/orchestrator/chat`. |
+| `workflowId` | string | One of | ID of an existing workflow to run instead of a proposal. |
 
-*Provide at least one of `proposal` or `workflowId`.
+Provide at least one of `proposal` or `workflowId`.
 
 ```bash
 curl -X POST https://your-instance/api/orchestrator/execute \
