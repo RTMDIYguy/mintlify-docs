@@ -5,6 +5,12 @@ description: "Weekly updates on new Agent Lab features, improvements, and fixes,
 
 ## Week of August 29, 2026
 
+### Updates
+
+- **Workflow step editor in the Command Center.** Every playbook card in the [Agency Command Center](/platform/command-center) now expands to show its DAG execution node sequence. A new **Adjust Steps** editor lets you rename a workflow, change its trigger type, and add, remove, reorder, or reassign step nodes without recreating the workflow.
+- **Deploy workflows from the Orchestrator terminal.** When the Orchestrator proposes a new workflow, the reply now includes a proposal card with an **Approve & Deploy DAG** button. Approved proposals appear in the playbook launcher immediately. The terminal's response handling was also fixed for more reliable replies.
+- **Ops Agent multimodal input.** The Ops Agent page at `/ops-agent` gained a multimodal input bar. Attach documents from your device or from presets, and dictate instructions with voice input, alongside regular text chat.
+
 ### New
 
 - **Agency Command Center.** A new authenticated operations cockpit is live at `/command-center`. Dispatch DAG workflow runs from the playbook launcher and monitor every swarm agent's status and uptime. Approve or reject runs paused for human sign-off, and hand tasks to the Ops Orchestrator in natural language through an interactive terminal. Run data refreshes automatically every 5 seconds. See the [Agency Command Center guide](/platform/command-center) to get started.

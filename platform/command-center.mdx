@@ -16,7 +16,12 @@ Use the Command Center when you are the operator on duty. It replaces jumping be
 
 Sign in, then navigate to `/command-center` in the web app.
 
-The header confirms the page is connected to the live runtime and shows the AI Studio mobile bridge status. The **Refresh** button re-fetches workflows, agents, and runs on demand. Run data also refreshes automatically every 5 seconds, so the approval queue stays current without manual refreshes.
+The header confirms the page is connected to the live runtime and shows the AI Studio mobile bridge status. Four header actions are available:
+
+- **Open Ops Agent** jumps to the Ops Agent page at `/ops-agent` for cleanup and triage chat sessions.
+- **Refresh** re-fetches workflows, agents, and runs on demand.
+- **1-Click Sync All** calls `POST /api/sync/all` to align the desktop HTML, repo Markdown, and OS state in one action.
+- Run data also refreshes automatically every 5 seconds, so the approval queue stays current without manual refreshes.
 
 Below the header, the **Operating Focus & Today's Top Actions** card lists the current operational directives derived from the URC Agency Operating Manual, so every session starts from the same priorities.
 
@@ -24,7 +29,9 @@ Below the header, the **Operating Focus & Today's Top Actions** card lists the c
 
 ### Deployable workflows & SOP playbooks
 
-The playbook launcher lists every active DAG workflow with its name, description, trigger type, and success rate. Click **Execute Run** on any card to dispatch that workflow into the execution engine immediately.
+The playbook launcher lists every active DAG workflow with its name, description, trigger type, step count, and success rate. Click **Execute Run** on any card to dispatch that workflow into the execution engine immediately.
+
+Each workflow card expands. Click the chevron to reveal the DAG execution node sequence: every step's title, type, action prompt, and assigned swarm agent. Use the expanded view to inspect exactly what a playbook will do before you dispatch it.
 
 Each dispatch calls the run trigger endpoint with the Command Center recorded as the trigger source:
 
@@ -36,6 +43,36 @@ Content-Type: application/json
 ```
 
 A toast confirms when the run is initiated, and the new run appears in the runs feed on the next 5-second refresh.
+
+#### Adjust workflow steps
+
+Click **Adjust Steps** on any workflow card to open the step editor. The editor lets you fine-tune the DAG execution graph without recreating the workflow:
+
+- Edit the workflow's name, description, and trigger type. Trigger types are manual execution, CRON schedule, webhook or inbound event, and event stream.
+- Add, remove, and reorder step nodes.
+- Set each step's type: trigger, agent, guardrail, or destination node.
+- Rewrite each step's action prompt and reassign its swarm agent.
+
+Click **Save Workflow Adjustments** to apply your changes. The Command Center updates the workflow metadata with `PATCH /api/workflows/{workflowId}` and replaces the step graph with a single request:
+
+```bash
+PUT /api/workflows/{workflowId}/steps
+Content-Type: application/json
+
+{
+  "steps": [
+    {
+      "orderIndex": 0,
+      "stepType": "trigger",
+      "title": "Ingestion & Trigger",
+      "actionPrompt": "Ingest task context and validate inputs.",
+      "agentId": "Workflow-Planner-04"
+    }
+  ]
+}
+```
+
+If a workflow has no step nodes configured yet, the editor pre-fills a three-node template (trigger, agent, and destination) so you can start from a working graph.
 
 ### Swarm agents
 
@@ -60,6 +97,8 @@ Run lead enrichment for Kansas City founders
 
 The Orchestrator can dispatch cross-department tasks, synthesize new DAG workflows, or answer questions about real-time platform state. Each message posts to `POST /api/orchestrator/chat` and the reply streams back into the message feed with a timestamp. If the Orchestrator cannot complete a command, it reports the error in the feed and continues operating in fallback mode.
 
+When the Orchestrator synthesizes a new workflow, its reply includes a proposal card with the proposed name, department code, and description. Click **Approve & Deploy DAG** to send the proposal to `POST /api/workflows/deploy`. The deployed workflow then appears in the playbook launcher, where you can adjust its steps or execute a run.
+
 ## When to use each panel
 
 | You want to | Use |
@@ -68,6 +107,7 @@ The Orchestrator can dispatch cross-department tasks, synthesize new DAG workflo
 | Check whether agents are online before dispatching work | Swarm agents |
 | Unblock a run waiting on human sign-off | Approval queue |
 | Dispatch an ad-hoc task or draft a new workflow in plain English | Orchestrator terminal |
+| Inspect or retune a playbook's steps, prompts, and agent assignments | Playbook launcher > Adjust Steps |
 
 ## Related pages
 
