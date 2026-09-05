@@ -1,0 +1,70 @@
+---
+title: "Agent tools: HubSpot CRM integration"
+description: "How autonomous agents read and write HubSpot deals and contacts, how to set the HubSpot token, and how fallback data and the refusal guardrail work."
+---
+
+Autonomous agents in Agent Lab run with a built-in toolset. In addition to email dispatch (`sendAgentMail`) and internal knowledge tools (`searchLocalFiles`, `readLocalFile`), the agent runner exposes five live HubSpot CRM tools. Agents call these tools directly when a workflow step asks them to check deal stages, extract deals, sync contacts, or manage the sales pipeline.
+
+Use this page to understand what CRM actions agents can perform, how to connect the tools to your HubSpot account, and what happens when no token is configured.
+
+## Prerequisites
+
+- A HubSpot account with a private app that has CRM object scopes for deals and contacts.
+- A private app access token (personal access token) from HubSpot.
+- Access to the environment variables of the server that runs your agents.
+
+## HubSpot CRM tools
+
+The agent runner registers five tools against the HubSpot CRM v3 objects API:
+
+| Tool | Action | Key parameters |
+| :--- | :--- | :--- |
+| `getHubSpotDeals` | Reads deals with name, stage, amount, pipeline, close date, and create date. | `limit` (default 10), optional `pipeline` filter. |
+| `getHubSpotContacts` | Reads contacts with email, name, company, lifecycle stage, phone, and lead source. | `limit` (default 10), optional `searchQuery`. |
+| `updateHubSpotDeal` | Updates an existing deal's stage, amount, or name. | `dealId` (required), optional `dealstage`, `amount`, `dealname`. |
+| `createHubSpotDeal` | Creates a new deal in a pipeline. | `dealname` and `amount` (required), `dealstage` (default `appointmentscheduled`), `pipeline` (default `default`). |
+| `upsertHubSpotContact` | Creates or updates a contact. | `email` (required), optional `firstname`, `lastname`, `company`, `lead_source` (default `AgentLab OS`), `lifecyclestage` (default `lead`). |
+
+Deal stage values follow the standard HubSpot sales pipeline identifiers: `appointmentscheduled`, `qualifiedtobuy`, `presentationscheduled`, `decisionmakerboughtin`, `closedwon`, and `closedlost`.
+
+The agent decides which tool to call based on the workflow step. For example, a step that says "move the Hamarashops deal to closed won" causes the agent to call `getHubSpotDeals` to find the deal ID, then `updateHubSpotDeal` with `dealstage: "closedwon"`.
+
+## Configure the HubSpot token
+
+The agent runner reads the token from the environment at run time. It checks `HUBSPOT_PAT` first, then falls back to `HUBSPOT_ACCESS_TOKEN`:
+
+```bash
+# Preferred variable name
+HUBSPOT_PAT=pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Also accepted
+HUBSPOT_ACCESS_TOKEN=pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+When a token is present, every tool call sends a live request to `api.hubapi.com` with the token as a bearer credential. If HubSpot rejects a request, the tool returns the HTTP status code and error body to the agent instead of failing the run. The agent can then report the exact API error in its output.
+
+One behavior is specific to `upsertHubSpotContact`: when HubSpot returns `409 Conflict` because the contact already exists, the tool treats this as a verified existing contact rather than an error.
+
+## Fallback behavior without a token
+
+If neither `HUBSPOT_PAT` nor `HUBSPOT_ACCESS_TOKEN` is set, the tools do not fail. Each tool returns simulated local data so workflow runs complete end to end in development:
+
+- `getHubSpotDeals` and `getHubSpotContacts` return a small sample pipeline and contact list with a `status` of `simulated_success` and a message noting that no token was found.
+- `updateHubSpotDeal`, `createHubSpotDeal`, and `upsertHubSpotContact` return a success payload prefixed with `[Simulated]` describing the write that would have occurred.
+
+<Warning>
+  Fallback responses look like successful tool results to the agent. Before relying on agent-reported CRM changes in production, confirm the token is set. Check tool output for `simulated_success` or the `[Simulated]` prefix to tell fallback results apart from live ones.
+</Warning>
+
+## Refusal guardrail
+
+The queue processor verifies agent output before marking a workflow step complete. Sometimes an agent responds with text claiming it cannot access the CRM or lacks the capability (for example, "I do not have direct access" or "unable to access external" systems) instead of calling a tool. When that happens, the queue processor throws an execution error and the step fails.
+
+This guardrail prevents false-positive completions: a step only counts as done when the agent actually executed the work, not when it produced a plausible-sounding refusal. Failed steps surface as errors in the run, so you can retry them or inspect the step configuration.
+
+## Troubleshooting
+
+- **Agent reports simulated data in production.** No token is set in the environment where the agent runner executes. Set `HUBSPOT_PAT` and restart the server.
+- **Tool output shows a 401 error from HubSpot.** The token is invalid or expired. Generate a new private app token in HubSpot and update the environment variable.
+- **Tool output shows a 403 error from HubSpot.** The private app lacks the required CRM scopes. Grant read and write scopes for deals and contacts.
+- **A step fails with a capability check error.** The refusal guardrail caught the agent claiming it could not act. Retry the run; the system prompt instructs agents to always use the HubSpot tools for CRM work.
