@@ -1,0 +1,100 @@
+---
+title: "Autonomous runtime workflows: the canonical 10"
+description: "The 10 canonical autonomous workflows that the Agent Lab v1.1 runtime seeds into every workspace, what each one does, and how the suite differs from the client-facing kit catalog."
+---
+
+Agent Lab v1.1 ships a suite of 10 canonical autonomous workflows in the runtime. Together they cover the agency's core departments: sales, finance, development, marketing, CRM, operations, fulfillment, and infrastructure.
+
+Use this page to understand what each workflow does, when it runs, and how the suite relates to the [workflow kit catalog](/workflows/overview).
+
+## Runtime workflows versus workflow kits
+
+The runtime suite and the kit catalog solve different problems. Do not confuse the two:
+
+- **Runtime workflows** (this page) are live, executable workflows that the Agent Lab runtime orchestrates. They run on triggers such as cron schedules and webhooks, and they operate the agency itself.
+- **Workflow kits** (the [catalog](/workflows/overview)) are packaged, versioned deliverables described by a `kit/1.0` manifest. Operators and buyers pick them up, run them, and adapt them.
+
+Several runtime workflows operationalize a kit-catalog workflow. For example, Founder Signal Content Dissemination is the runtime automation of `MKT-06`, the same workflow the [Founder Signal System](/workflows/founder-signal-system) packages for clients.
+
+## Automatic seeding
+
+The runtime seeds the canonical 10 into any workspace that has no workflows yet. The first time the workspace's workflow list loads, Agent Lab inserts all 10 workflows with `active` status, along with their ordered steps. You do not create them by hand.
+
+Each workflow is a sequence of steps. A step is one of two types:
+
+- `agent`: an autonomous step a swarm agent executes without intervention.
+- `guardrail`: a checkpoint step. The workflow does not proceed past a guardrail until the check passes. Some guardrails require an operator to approve in person.
+
+A seeded workflow looks like this in the workflow list:
+
+```json
+{
+  "name": "Inbound Lead Enrichment & Verification",
+  "description": "Enriches founder leads from Bootstrapper events with LinkedIn and Hunter.io APIs, then qualifies for CRM triage.",
+  "triggerType": "Event / Inbound Webhook",
+  "status": "active",
+  "steps": [
+    { "orderIndex": 0, "stepType": "agent", "title": "Extract Inbound Lead Profile" },
+    { "orderIndex": 1, "stepType": "agent", "title": "Enrich Company Tech Stack & Headcount" },
+    { "orderIndex": 2, "stepType": "guardrail", "title": "Verify Quality & Compliance Guardrail" },
+    { "orderIndex": 3, "stepType": "agent", "title": "Sync Qualified Lead to HubSpot & M365" }
+  ]
+}
+```
+
+## The canonical 10
+
+Reference these workflows by their `XXX-NN` ID in commit messages, change control entries, and cross-workflow handoffs, the same convention the kit catalog uses.
+
+| ID | Workflow | Trigger |
+| --- | --- | --- |
+| SAL-01 | Inbound Lead Enrichment & Verification | Event / inbound webhook |
+| FIN-01 | M365 Daily Financial Reconciliation | Cron, daily at 18:00 UTC |
+| DEV-01 | Automated CI/CD Test & Refactor Suite | GitHub webhook (push/PR) |
+| MKT-06 | Founder Signal Content Dissemination | Cron, Mon/Wed/Fri at 09:00 |
+| CRM-01 | HubSpot Deal Stage & Pipeline Sync | Cron, hourly |
+| MKT-09 | Bootstrapper Founder Roundtable Intake | Event webhook (Luma / Meetup) |
+| OPS-01 | Compliance Audit & Change Ledger Verification | Cron, daily at midnight |
+| FUL-01 | Client Onboarding & Journey Kit Provisioning | Manual / contract-signed event |
+| OPS-02 | Weekly Operational Scorecard & Metrics Rollup | Cron, Sunday at 20:00 |
+| INFRA-01 | Automated Backup & State Machine Checkpoint | Cron, daily at 02:00 |
+
+### SAL-01: Inbound Lead Enrichment & Verification
+
+Enriches founder leads from Bootstrapper events and qualifies them for CRM triage. The workflow parses the inbound payload for name, company domain, and event notes, enriches firmographics through Hunter.io and Clearbit, then checks the lead against ICP criteria at a guardrail step. Qualified leads are upserted into HubSpot and logged in the M365 master lead sheet.
+
+### FIN-01: M365 Daily Financial Reconciliation
+
+Reconciles Stripe and Mercury transactions against the M365 Finance Control sheet every day at 18:00 UTC. The workflow fetches all net settlements, fees, and payouts for the trailing 24 hours, matches transaction IDs against operating expense budget categories, and generates a daily financial summary. It alerts when a variance exceeds $50.
+
+### DEV-01: Automated CI/CD Test & Refactor Suite
+
+Runs on every GitHub push and pull request. The workflow compiles TypeScript, runs the Vitest suites, audits the AST for circular dependencies and type leaks, and scans dependencies for vulnerabilities. It publishes a CI/CD health report with test coverage metrics and build certification status to Slack and GitHub.
+
+### MKT-06: Founder Signal Content Dissemination
+
+Runs Monday, Wednesday, and Friday at 09:00. The workflow extracts high-impact takeaways from recent operational briefs and case studies, drafts 5 LinkedIn and X posts in the URC brand voice, and pauses at a human-in-the-loop guardrail for operator review of hooks, tone, and asset links. Approved drafts are staged in the content queue with scheduled publish dates.
+
+### CRM-01: HubSpot Deal Stage & Pipeline Sync
+
+Queries all active HubSpot pipeline deals hourly, including stages, amounts, and last activity dates. The workflow scores deal health, flags deals with no touchpoints in more than 5 days as stalled, and creates follow-up tasks directly in the HubSpot pipeline.
+
+### MKT-09: Bootstrapper Founder Roundtable Intake
+
+Ingests founder event registrations from Luma or Meetup webhooks. The workflow parses the attendee's founder stage, revenue band, and primary bottleneck, computes a baseline 4-Engine diagnostic scorecard across the Profit, People, Value, and Financial engines, and sends a personalized pre-session brief with relevant case study references.
+
+### OPS-01: Compliance Audit & Change Ledger Verification
+
+Scans the repository against the Canonical Registry every day at midnight. The workflow runs the change control scanner across the operational catalog, confirms that every modified kit carries an active `CC-*` entry in the change control register, and saves a timestamped, signed audit log in the compliance audits directory.
+
+### FUL-01: Client Onboarding & Journey Kit Provisioning
+
+Runs manually or on a contract-signed event. The workflow initializes an isolated client workspace partition with the client's brand tokens and credentials, deploys the standard MKT, SAL, and OPS Journey Kits into the client directory, verifies API connectivity with a self-test, and generates the client's Owner's Manual quickstart as a welcome packet.
+
+### OPS-02: Weekly Operational Scorecard & Metrics Rollup
+
+Runs every Sunday at 20:00. The workflow aggregates 7-day swarm metrics, including task throughput, success rates, latency, and token cost, computes quantified founder ROI and cost savings, and publishes a concise weekly executive operating scorecard for leadership review.
+
+### INFRA-01: Automated Backup & State Machine Checkpoint
+
+Runs every day at 02:00. The workflow exports a timestamped SQL dump of workflows, runs, steps, and audit logs, validates foreign key consistency and schema alignment, and records the backup hash and storage verification in the compliance register.

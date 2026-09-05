@@ -45,7 +45,8 @@
           {
             "group": "Workflow packages",
             "pages": [
-              "workflows/overview"
+              "workflows/overview",
+              "workflows/autonomous-runtime"
             ]
           },
           {
