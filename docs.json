@@ -61,6 +61,12 @@
             "pages": [
               "workflows/founder-signal-system"
             ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/agent-tools"
+            ]
           }
         ]
       },
