@@ -1,6 +1,6 @@
 ---
 title: "Autonomous runtime workflows: the canonical 10"
-description: "The 10 canonical autonomous workflows that the Agent Lab v1.1 runtime seeds into every workspace, what each one does, and how the suite differs from the client-facing kit catalog."
+description: "The 10 canonical autonomous workflows the Agent Lab v1.1 runtime seeds into every workspace, and how they differ from the client-facing kit catalog."
 ---
 
 Agent Lab v1.1 ships a suite of 10 canonical autonomous workflows in the runtime. Together they cover the agency's core departments: sales, finance, development, marketing, CRM, operations, fulfillment, and infrastructure.
@@ -61,7 +61,7 @@ Reference these workflows by their `XXX-NN` ID in commit messages, change contro
 
 ### SAL-01: Inbound Lead Enrichment & Verification
 
-Enriches founder leads from Bootstrapper events and qualifies them for CRM triage. The workflow parses the inbound payload for name, company domain, and event notes, enriches firmographics through Hunter.io and Clearbit, then checks the lead against ICP criteria at a guardrail step. Qualified leads are upserted into HubSpot and logged in the M365 master lead sheet.
+Enriches founder leads from Bootstrapper events and qualifies them for CRM triage. The workflow parses the inbound payload for name, company domain, and event notes, then enriches firmographics through Hunter.io and Clearbit. A guardrail step checks the lead against ICP criteria. Qualified leads are upserted into HubSpot and logged in the M365 master lead sheet.
 
 ### FIN-01: M365 Daily Financial Reconciliation
 
@@ -73,7 +73,7 @@ Runs on every GitHub push and pull request. The workflow compiles TypeScript, ru
 
 ### MKT-06: Founder Signal Content Dissemination
 
-Runs Monday, Wednesday, and Friday at 09:00. The workflow extracts high-impact takeaways from recent operational briefs and case studies, drafts 5 LinkedIn and X posts in the URC brand voice, and pauses at a human-in-the-loop guardrail for operator review of hooks, tone, and asset links. Approved drafts are staged in the content queue with scheduled publish dates.
+Runs Monday, Wednesday, and Friday at 09:00. The workflow extracts high-impact takeaways from recent operational briefs and case studies, then drafts 5 LinkedIn and X posts in the URC brand voice. A human-in-the-loop guardrail pauses the run for operator review of hooks, tone, and asset links. Approved drafts are staged in the content queue with scheduled publish dates.
 
 ### CRM-01: HubSpot Deal Stage & Pipeline Sync
 
@@ -81,20 +81,20 @@ Queries all active HubSpot pipeline deals hourly, including stages, amounts, and
 
 ### MKT-09: Bootstrapper Founder Roundtable Intake
 
-Ingests founder event registrations from Luma or Meetup webhooks. The workflow parses the attendee's founder stage, revenue band, and primary bottleneck, computes a baseline 4-Engine diagnostic scorecard across the Profit, People, Value, and Financial engines, and sends a personalized pre-session brief with relevant case study references.
+Ingests founder event registrations from Luma or Meetup webhooks. The workflow parses the attendee's founder stage, revenue band, and primary bottleneck. It then computes a baseline 4-Engine diagnostic scorecard across the Profit, People, Value, and Financial engines, and sends a personalized pre-session brief with relevant case study references.
 
 ### OPS-01: Compliance Audit & Change Ledger Verification
 
-Scans the repository against the Canonical Registry every day at midnight. The workflow runs the change control scanner across the operational catalog, confirms that every modified kit carries an active `CC-*` entry in the change control register, and saves a timestamped, signed audit log in the compliance audits directory.
+Scans the repository against the Canonical Registry every day at midnight. The workflow runs the change control scanner across the operational catalog and confirms that every modified kit carries an active `CC-*` entry in the change control register. It saves a timestamped, signed audit log in the compliance audits directory.
 
 ### FUL-01: Client Onboarding & Journey Kit Provisioning
 
-Runs manually or on a contract-signed event. The workflow initializes an isolated client workspace partition with the client's brand tokens and credentials, deploys the standard MKT, SAL, and OPS Journey Kits into the client directory, verifies API connectivity with a self-test, and generates the client's Owner's Manual quickstart as a welcome packet.
+Runs manually or on a contract-signed event. The workflow initializes an isolated client workspace partition with the client's brand tokens and credentials, then deploys the standard MKT, SAL, and OPS Journey Kits into the client directory. It verifies API connectivity with a self-test and generates the client's Owner's Manual quickstart as a welcome packet.
 
 ### OPS-02: Weekly Operational Scorecard & Metrics Rollup
 
-Runs every Sunday at 20:00. The workflow aggregates 7-day swarm metrics, including task throughput, success rates, latency, and token cost, computes quantified founder ROI and cost savings, and publishes a concise weekly executive operating scorecard for leadership review.
+Runs every Sunday at 20:00. The workflow aggregates 7-day swarm metrics, including task throughput, success rates, latency, and token cost. It computes quantified founder ROI and cost savings, then publishes a concise weekly executive operating scorecard for leadership review.
 
 ### INFRA-01: Automated Backup & State Machine Checkpoint
 
-Runs every day at 02:00. The workflow exports a timestamped SQL dump of workflows, runs, steps, and audit logs, validates foreign key consistency and schema alignment, and records the backup hash and storage verification in the compliance register.
+Runs every day at 02:00. The workflow exports a timestamped SQL dump of workflows, runs, steps, and audit logs, then validates foreign key consistency and schema alignment. It records the backup hash and storage verification in the compliance register.
