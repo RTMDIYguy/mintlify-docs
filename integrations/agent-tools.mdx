@@ -1,6 +1,6 @@
 ---
 title: "Agent tools: HubSpot CRM integration"
-description: "Autonomous agents can query, create, and update HubSpot deals and contacts through five built-in CRM tools. Configure the HubSpot token, understand the local fallback data, and learn how the refusal guardrail keeps runs honest."
+description: "How autonomous agents read and write HubSpot deals and contacts, how to set the HubSpot token, and how fallback data and the refusal guardrail work."
 ---
 
 Autonomous agents in Agent Lab run with a built-in toolset. In addition to email dispatch (`sendAgentMail`) and internal knowledge tools (`searchLocalFiles`, `readLocalFile`), the agent runner exposes five live HubSpot CRM tools. Agents call these tools directly when a workflow step asks them to check deal stages, extract deals, sync contacts, or manage the sales pipeline.
@@ -41,7 +41,7 @@ HUBSPOT_PAT=pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 HUBSPOT_ACCESS_TOKEN=pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
-When a token is present, every tool call sends a live request to `api.hubapi.com` with the token as a bearer credential. If HubSpot rejects a request, the tool returns the HTTP status code and error body to the agent instead of failing the run, so the agent can report the exact API error in its output.
+When a token is present, every tool call sends a live request to `api.hubapi.com` with the token as a bearer credential. If HubSpot rejects a request, the tool returns the HTTP status code and error body to the agent instead of failing the run. The agent can then report the exact API error in its output.
 
 One behavior is specific to `upsertHubSpotContact`: when HubSpot returns `409 Conflict` because the contact already exists, the tool treats this as a verified existing contact rather than an error.
 
@@ -58,7 +58,7 @@ If neither `HUBSPOT_PAT` nor `HUBSPOT_ACCESS_TOKEN` is set, the tools do not fai
 
 ## Refusal guardrail
 
-The queue processor verifies agent output before marking a workflow step complete. If the agent responds with text claiming it cannot access the CRM or lacks the capability (for example, "I do not have direct access" or "unable to access external" systems) instead of calling a tool, the queue processor throws an execution error and the step fails.
+The queue processor verifies agent output before marking a workflow step complete. Sometimes an agent responds with text claiming it cannot access the CRM or lacks the capability (for example, "I do not have direct access" or "unable to access external" systems) instead of calling a tool. When that happens, the queue processor throws an execution error and the step fails.
 
 This guardrail prevents false-positive completions: a step only counts as done when the agent actually executed the work, not when it produced a plausible-sounding refusal. Failed steps surface as errors in the run, so you can retry them or inspect the step configuration.
 
