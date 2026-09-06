@@ -59,7 +59,8 @@
           {
             "group": "Workflows",
             "pages": [
-              "workflows/founder-signal-system"
+              "workflows/founder-signal-system",
+              "workflows/results-vault"
             ]
           }
         ]
@@ -82,6 +83,13 @@
             "group": "API documentation",
             "pages": [
               "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Runs and artifacts",
+            "pages": [
+              "api-reference/runs",
+              "api-reference/artifacts"
             ]
           },
           {
