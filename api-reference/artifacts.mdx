@@ -145,7 +145,7 @@ Rewrites the artifact and saves the result as a new revision. Body fields:
 | :--- | :--- |
 | `instructions` | Optional operator instructions. When omitted, the flywheel refines based on the artifact's own quality feedback. |
 
-Refinement evaluates the original content, rewrites it with Gemini (`gemini-2.5-flash`) when a Google AI API key is configured (falling back to deterministic placeholder and filler cleanup otherwise), re-evaluates the result, and inserts a new artifact with an incremented `revisionVersion` and `parentArtifactId` set to the original. The original artifact is never modified.
+Refinement evaluates the original content, then rewrites it with Gemini (`gemini-2.5-flash`) when a Google AI API key is configured. Without a key, it falls back to deterministic placeholder and filler cleanup. It then re-evaluates the result and inserts a new artifact with an incremented `revisionVersion` and `parentArtifactId` set to the original. The original artifact is never modified.
 
 ```bash
 curl -X POST https://your-instance/api/artifacts/7e8f9a0b-.../refine \
