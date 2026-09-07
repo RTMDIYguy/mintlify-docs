@@ -49,6 +49,13 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "guides/workspace-snapshots",
+              "guides/ops-agent-proposals"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
@@ -97,6 +104,12 @@
             "group": "Integrations",
             "pages": [
               "api-reference/government-apis"
+            ]
+          },
+          {
+            "group": "Workspace snapshots",
+            "pages": [
+              "api-reference/snapshots"
             ]
           }
         ]

@@ -1,0 +1,132 @@
+---
+title: 'Workspace snapshot endpoints'
+description: 'List, save, clone, restore, and delete workspace snapshots for multi-office and franchise replication.'
+---
+
+## Overview
+
+The snapshot endpoints manage saved workspace configurations. Each snapshot captures LLM settings, integration configuration, active agents, active workflows, and optional prompt overrides for one office or branch. Use these endpoints to automate franchise replication, back up a configuration before changes, or restore a workspace to a saved state.
+
+For a conceptual walkthrough, see [Workspace snapshots and franchise replication](/guides/workspace-snapshots).
+
+## The snapshot object
+
+```json
+{
+  "id": "snap_kc_hq_primary",
+  "name": "Kansas City HQ Master Configuration",
+  "officeName": "Uncle Robert Consulting — KC Flagship",
+  "description": "Full production configuration...",
+  "createdAt": "2026-09-04T22:01:30.000Z",
+  "updatedAt": "2026-09-06T22:01:30.000Z",
+  "version": "1.1.0",
+  "tags": ["flagship", "production"],
+  "scope": {
+    "integrations": true,
+    "hyperparameters": true,
+    "swarms": true,
+    "playbooks": true,
+    "prompts": true
+  },
+  "configuration": {
+    "llmSettings": { "temperature": 0.2, "maxOutputTokens": 8192, "topP": 0.95, "tier2Fallback": "gemini-2.5-flash", "tier3Fallback": "gemini-2.0-flash-lite", "zeroRefusalMode": true },
+    "integrations": { "instantly": { "enabled": true, "maxDailyLeads": 25 }, "hubspot": { "enabled": true, "syncIntervalMins": 15 } },
+    "activeAgents": [],
+    "activeWorkflows": []
+  }
+}
+```
+
+## List snapshots
+
+`GET /api/snapshots`
+
+Returns all saved snapshots, including the two canonical seeded templates.
+
+```bash
+curl https://your-instance/api/snapshots
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "snapshots": [ ... ],
+  "totalCount": 2,
+  "lastUpdated": "2026-09-07T00:00:00.000Z"
+}
+```
+
+## Save a snapshot
+
+`POST /api/snapshots/save`
+
+Captures a configuration as a new snapshot. `name` and `officeName` are required; the endpoint returns HTTP `400` if either is missing. `description`, `tags`, `scope`, and `configuration` are optional and fall back to defaults when omitted.
+
+```bash
+curl -X POST https://your-instance/api/snapshots/save \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Austin Franchise Master Setup",
+    "officeName": "Austin Franchise 01",
+    "description": "Full operational configuration for Austin Franchise 01",
+    "tags": ["branch", "custom"]
+  }'
+```
+
+Returns HTTP `201` with the created snapshot. New snapshot IDs are generated with a `snap_` prefix.
+
+## Clone a snapshot
+
+`POST /api/snapshots/:id/clone`
+
+Copies an existing snapshot into a new office or branch configuration. The clone gets a new ID, fresh timestamps, and a `cloned-branch` tag appended to the source snapshot's tags.
+
+| Body field | Required | Description |
+| :--- | :--- | :--- |
+| `targetOfficeName` | No | Name of the new office. Defaults to the source office name suffixed with `- Branch 02`. |
+| `newSnapshotName` | No | Name for the cloned snapshot. Defaults to the source name with a clone suffix. |
+
+```bash
+curl -X POST https://your-instance/api/snapshots/snap_franchise_starter/clone \
+  -H "Content-Type: application/json" \
+  -d '{"targetOfficeName": "Denver Satellite Office"}'
+```
+
+Returns the cloned snapshot. Returns HTTP `404` if the source snapshot does not exist.
+
+## Restore a snapshot
+
+`POST /api/snapshots/:id/restore`
+
+Applies a saved snapshot's configuration to the workspace.
+
+```bash
+curl -X POST https://your-instance/api/snapshots/snap_kc_hq_primary/restore
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": "Restored workspace configuration from \"Kansas City HQ Master Configuration\" (Uncle Robert Consulting — KC Flagship).",
+  "appliedConfiguration": { ... },
+  "appliedAt": "2026-09-07T00:00:00.000Z"
+}
+```
+
+Returns HTTP `404` if the snapshot does not exist.
+
+## Delete a snapshot
+
+`DELETE /api/snapshots/:id`
+
+Removes a snapshot from the store.
+
+```bash
+curl -X DELETE https://your-instance/api/snapshots/snap_abc123def4
+```
+
+Returns `{ "success": true, "message": "Snapshot deleted." }`, or HTTP `404` if the snapshot does not exist.

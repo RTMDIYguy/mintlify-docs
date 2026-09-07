@@ -1,0 +1,68 @@
+---
+title: 'Workspace snapshots and franchise replication'
+description: 'Save complete operational configurations as snapshots, then clone or restore them to replicate a workspace across offices, franchises, and branch locations.'
+---
+
+## Overview
+
+A workspace snapshot is a versioned capture of a complete operational configuration: LLM hyperparameters, integration settings, active agent swarms, playbook workflows, and prompt overrides. The replication engine lets you save the setup of one office, then clone it into a new office, franchise, or satellite branch without rebuilding the configuration by hand.
+
+Use snapshots when you need to:
+
+- Preserve a known-good configuration before making risky changes.
+- Stand up a new branch office or franchise from a proven template.
+- Roll a workspace back to an earlier saved state.
+
+## What a snapshot captures
+
+Each snapshot records an office name, description, version, and tags alongside a scoped configuration payload. The `scope` flags control which configuration areas the snapshot includes:
+
+| Scope flag | What it covers |
+| :--- | :--- |
+| `integrations` | Enablement and settings for the integration nodes (Instantly, HubSpot, AgentMail, ElevenLabs, Microsoft 365, IONOS, Twilio, n8n, Pulse Social). |
+| `hyperparameters` | LLM settings: temperature, max output tokens, top-p, tier 2 and tier 3 fallback models, and zero-refusal mode. |
+| `swarms` | The roster of active agents, including role, department, status, and model tier. |
+| `playbooks` | Active workflows and their departments and schedules. |
+| `prompts` | Custom prompt overrides. |
+
+## Canonical templates
+
+Two pre-seeded snapshots ship with the platform and appear in the snapshots grid alongside any snapshots you save:
+
+- **Kansas City HQ Master Configuration** (`snap_kc_hq_primary`): the full flagship production configuration.
+- **Franchise & Branch Office Zero-Waste Starter** (`snap_franchise_starter`): a lightweight, low-cost starter template for new advisory branches, boutique agencies, and satellite locations. It runs a reduced agent roster and disables higher-cost integrations such as ElevenLabs voice and Pulse Social.
+
+Clone a canonical template rather than editing it. Cloning keeps the template intact as a baseline for the next office.
+
+## Managing snapshots in the app
+
+Open **Settings** and select the **Snapshots & Franchises** tab. From there you can:
+
+1. **Create Snapshot**: enter an office or branch name, a snapshot name, and a description. The app saves the current configuration under that identity.
+2. **Clone to Branch**: pick a snapshot from the grid and enter the target office name. The engine copies the full configuration into a new snapshot tagged `cloned-branch`.
+3. **Restore**: apply a saved snapshot's configuration to the active workspace.
+
+Every operation is also available through the API. See the [snapshot endpoints reference](/api-reference/snapshots) for request and response formats.
+
+## Replicating a workspace via the API
+
+To replicate a configured office into a new branch programmatically:
+
+```bash
+# 1. List available snapshots and find the source ID
+curl https://your-instance/api/snapshots
+
+# 2. Clone the source snapshot into the new office
+curl -X POST https://your-instance/api/snapshots/snap_kc_hq_primary/clone \
+  -H "Content-Type: application/json" \
+  -d '{"targetOfficeName": "St. Louis Advisory Office"}'
+
+# 3. Restore the cloned snapshot to apply it
+curl -X POST https://your-instance/api/snapshots/<cloned-id>/restore
+```
+
+The clone response returns the new snapshot, including its generated ID. Restore that ID to apply the configuration.
+
+<Tip>
+  Tag snapshots consistently (for example `franchise`, `production`, `low-burn`) so operators can identify the right template when standing up the next office.
+</Tip>
