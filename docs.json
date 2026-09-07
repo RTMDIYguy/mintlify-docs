@@ -49,6 +49,12 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "platform/settings"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",

@@ -1,0 +1,136 @@
+---
+title: "Ops Agent settings and MCP integrations"
+description: "Tune Ops Agent LLM hyper-parameters, manage built-in OS integrations, register custom webhooks, and mount Model Context Protocol (MCP) servers."
+---
+
+## Overview
+
+The Settings page gives you fine-grained control over how the Ops Agent thinks and what it can connect to. Two sections matter most:
+
+- **Ops Agent LLM Controls** — persona, model selection, sampling hyper-parameters, and cognitive governance toggles.
+- **Integrations & MCP** — built-in OS integrations, custom webhooks, and Model Context Protocol (MCP) servers, each with a live connection test.
+
+Use this page when you need to:
+
+- Make the Ops Agent more deterministic or more creative for a given workload.
+- Set a fallback model so runs survive a primary model outage.
+- Register an external webhook or mount an MCP server as an agent tool source.
+- Verify that an integration handshake works before relying on it in a workflow.
+
+## Ops Agent LLM controls
+
+### Identity and tone
+
+Define who the agent is and how it communicates:
+
+| Control | What it does |
+| :--- | :--- |
+| **Orchestrator Name** | Display name for the orchestrating agent. |
+| **Persona & Executive Role** | Free-text role the agent adopts, for example `Chief Systems Architect & Autonomous Swarm Director`. |
+| **Tone & Operating Code** | One of four styles: Servant Leadership, Technical Architect, Executive Operator, or Concise Action-Only. |
+| **Active Domain Knowledge Brain** | Knowledge base the agent reasons over, such as the URC 7-Department Canonical Brain or the [Founder Signal](/workflows/founder-signal-system) accelerator brain. |
+
+### Model and sampling
+
+Control which model runs and how it generates output:
+
+| Control | What it does | Default |
+| :--- | :--- | :--- |
+| **Primary Reasoning Model** | Main model for orchestration. Options include Gemini 2.5 Flash, Gemini 2.5 Pro, GPT-4o, Claude 3.5 Sonnet, and Llama 3.3 70B. | Gemini 2.5 Flash |
+| **Automatic Fallback Model** | Model used if the primary fails. Choose `None` for strict fail-fast behavior. | `gemini-2.5-pro` |
+| **Sampling Temperature** | Slider from 0.0 to 1.0. Below 0.3 is deterministic strict-SOP adherence, 0.3–0.7 balances strategy and execution, above 0.7 favors creative ideation. | `0.2` |
+| **Max Output Tokens** | Upper bound on tokens per generation. | `4096` |
+| **Top-P Nucleus Sampling** | Probability mass cutoff for token sampling. | `0.9` |
+
+### Cognitive governance
+
+Three toggles gate how the agent reasons. All three are on by default:
+
+- **Anti-Passivity Mandate (Zero Refusal Gate)** — the agent must attempt the task rather than deflect or defer.
+- **Multi-Step Chain-of-Thought DAG Planning** — the agent decomposes work into a multi-step plan before executing.
+- **Quality Flywheel Auto-Evaluation & Scoring** — the agent scores its own output and feeds the score back into future runs.
+
+Click **Save** to persist the configuration. Saving updates the orchestrator name, default model, and system prompt on the server.
+
+## Integrations & MCP hub
+
+The Integrations & MCP tab manages three kinds of connections: built-in OS integrations, custom webhooks, and MCP servers.
+
+### Built-in OS integrations
+
+Eight integrations ship pre-configured:
+
+| Integration | Purpose | Protocol |
+| :--- | :--- | :--- |
+| **HubSpot CRM & Sales** | Two-way lead capture, deal pipeline sync, contact engagement tracking. | OAuth 2.0 / REST API |
+| **AgentMail Inbound & Direct SMTP** | Autonomous cold outreach and verified lead reply ingestion. | Direct REST / Webhook Ingest |
+| **ElevenLabs / Pamela Telephony** | Inbound triage, diagnostic slot booking, post-call transcript ingestion. | REST & Webhook Handshake |
+| **IONOS Cloud & Domains** | Enterprise DNS, hosting, sovereign instances, and SSL certificates. | Certified Partner Network |
+| **Microsoft 365 Operating Backbone** | OneDrive ledger sync, Outlook calendar dispatch, M365 reconciliation. | M365 Graph Bridge |
+| **Twilio Telephony & SIP** | Local number routing, SMS gateway, SIP forwarding. | Twilio REST API v2010 |
+| **n8n Autonomous Workflow Engine** | Scheduled CRON triggers, sync loops, background jobs. | n8n Webhook / MCP Server |
+| **Pulse Social Scheduler** | Autonomous content queue scheduling and distribution. | AgentLab Social Dispatch API |
+
+### Add a custom webhook
+
+Click **Add Webhook** and provide a name, an endpoint URL, and an optional API key. The integration is stored with type `webhook`:
+
+```json
+{
+  "name": "Mercury Bank Webhook",
+  "type": "webhook",
+  "config": {
+    "endpoint": "https://api.mercury.com/v1/webhooks",
+    "apiKey": "sec_test_123"
+  },
+  "status": "active"
+}
+```
+
+### Mount an MCP server
+
+Click **Add MCP Server** to mount a standard-protocol tool source such as PostgreSQL MCP, BigQuery MCP, or Filesystem MCP. Configure:
+
+- **Server Identifier Name** — a label like `Postgres-MCP`.
+- **Transport Protocol** — `sse` (Server-Sent Events URL) or `stdio` (local command).
+- **Endpoint or command** — an SSE URL such as `https://mcp.agent-lab.tech/sse`, or a CLI command such as `npx -y @modelcontextprotocol/server-postgres` for stdio.
+- **Capabilities** — comma-separated list, for example `tools,resources`.
+- **Authorization Token / API Key** — optional.
+
+The integration is stored with type `mcp`:
+
+```json
+{
+  "name": "PostgreSQL MCP",
+  "type": "mcp",
+  "config": {
+    "transport": "sse",
+    "endpoint": "https://mcp.agent-lab.tech/sse",
+    "capabilities": ["tools", "resources"]
+  },
+  "status": "active"
+}
+```
+
+### Integration status
+
+Every integration carries a `status` field. New integrations default to `active` unless you supply a different status when creating or updating them.
+
+## Test a connection
+
+Each registered webhook and MCP server has a **Test** action that runs a live handshake through the `settings.testIntegration` mutation. The test reports the protocol negotiated and the roundtrip latency:
+
+```json
+{
+  "success": true,
+  "latencyMs": 34,
+  "protocol": "Model Context Protocol v1.0 (SSE/stdio)",
+  "message": "Successfully verified handshake with PostgreSQL MCP (34ms roundtrip).",
+  "timestamp": "2026-09-06T19:04:41.000Z"
+}
+```
+
+- MCP integrations report `Model Context Protocol v1.0 (SSE/stdio)`.
+- Webhook integrations report `REST Webhook / OAuth 2.0`.
+
+Run a test after adding an integration, and again whenever a workflow that depends on it starts failing, to confirm the endpoint still responds.
