@@ -91,6 +91,28 @@ Scans the repository against the Canonical Registry every day at midnight. The w
 
 Runs manually or on a contract-signed event. The workflow initializes an isolated client workspace partition with the client's brand tokens and credentials, then deploys the standard MKT, SAL, and OPS Journey Kits into the client directory. It verifies API connectivity with a self-test and generates the client's Owner's Manual quickstart as a welcome packet.
 
+#### Purchase ingestion endpoint
+
+FUL-01 also accepts customer purchase events directly through the runtime API. Send a purchase event to `POST /fulfillment/onboarding/ingest` when a payment lands from Stripe, PayPal, Gumroad, or a manual sale. The endpoint provisions entitlements, generates an onboarding and retention blueprint in the Results Vault, tags the contact in HubSpot (`customer_onboarded`, tier, and source tags), and schedules a 3-touch post-purchase retention sequence with milestones on days 1, 3, and 7.
+
+The request body requires `customerName`, `customerEmail`, and `productPurchased`. If any of the three is missing, the endpoint returns `400`.
+
+```json
+POST /fulfillment/onboarding/ingest
+{
+  "customerName": "Jane Founder",
+  "customerEmail": "jane@example.com",
+  "productPurchased": "Founder Signal System",
+  "amount": 1500,
+  "currency": "USD",
+  "source": "stripe",
+  "transactionId": "tx_abc123",
+  "tier": "sprint"
+}
+```
+
+Optional fields default when omitted: `currency` to `USD`, `source` to `stripe`, and `tier` to `standard`. `source` accepts `stripe`, `paypal`, `gumroad`, or `manual`. `tier` accepts `standard`, `pro`, `sprint`, or `custom`. On success the endpoint returns `200` with an `onboardingId`, the transaction ID, a SHA-256 checksum of the generated blueprint, and status `provisioned_and_enrolled`. Every ingestion also writes an audit log entry with policy check results.
+
 ### OPS-02: Weekly Operational Scorecard & Metrics Rollup
 
 Runs every Sunday at 20:00. The workflow aggregates 7-day swarm metrics, including task throughput, success rates, latency, and token cost. It computes quantified founder ROI and cost savings, then publishes a concise weekly executive operating scorecard for leadership review.
