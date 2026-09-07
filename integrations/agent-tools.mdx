@@ -1,17 +1,32 @@
 ---
-title: "Agent tools: HubSpot CRM integration"
-description: "How autonomous agents read and write HubSpot deals and contacts, how to set the HubSpot token, and how fallback data and the refusal guardrail work."
+title: "Agent tools: departmental suite and HubSpot CRM"
+description: "Tools agents use for content, file operations, diagnostics, and HubSpot CRM, plus token setup, fallback data, and the anti-passivity refusal gate."
 ---
 
-Autonomous agents in Agent Lab run with a built-in toolset. In addition to email dispatch (`sendAgentMail`) and internal knowledge tools (`searchLocalFiles`, `readLocalFile`), the agent runner exposes five live HubSpot CRM tools. Agents call these tools directly when a workflow step asks them to check deal stages, extract deals, sync contacts, or manage the sales pipeline.
+Autonomous agents in Agent Lab run with a built-in toolset that spans content creation, information architecture, diagnostics, research, email dispatch (`sendAgentMail`), internal knowledge (`searchLocalFiles`, `readLocalFile`), and five live HubSpot CRM tools. Agents call these tools directly when a workflow step asks them to draft content, organize files, diagnose runs, check deal stages, sync contacts, or manage the sales pipeline.
 
-Use this page to understand what CRM actions agents can perform, how to connect the tools to your HubSpot account, and what happens when no token is configured.
+Use this page to understand what actions agents can perform, how to connect the CRM tools to your HubSpot account, what happens when no token is configured, and how the refusal gate keeps step results honest.
 
 ## Prerequisites
 
 - A HubSpot account with a private app that has CRM object scopes for deals and contacts.
 - A private app access token (personal access token) from HubSpot.
 - Access to the environment variables of the server that runs your agents.
+
+## Departmental tool suite
+
+Beyond the CRM tools, the agent runner exposes departmental tools grouped by function:
+
+| Group | Tools | What agents do with them |
+| :--- | :--- | :--- |
+| Research and ingestion | `scrapeUrlContent`, `extractDocumentMetadata` | Scrape webpage content, headings, and metadata from a URL; extract document structure, authoring metadata, and key entities from raw text. |
+| Information architecture | `auditFileInventory`, `proposeFolderHierarchy`, `categorizeDriveFiles` | Scan file storage for counts, duplicates, and sensitive assets; propose folder structures aligned with the seven department playbooks (MKT, SAL, OPS, FIN, FUL, CUL, AFT); map unorganized files into department folders. |
+| Diagnostics and delivery | `inspectExecutionLogs`, `verifyReportDelivery`, `checkCompletionCache` | Inspect execution logs and audit traces to diagnose failures; verify reports were stored in the Artifact Vault and dispatched; check completion caches to avoid duplicate runs. |
+| Content and creative | `saveContentDraft`, `saveOutputDocument`, `generateVisualSpec` | Save drafted posts, articles, or newsletter copy to the Content Queue and Calendar; save reports, SOPs, and CSV deliverables to the Artifact Vault; generate visual specs and image generation prompts. |
+
+After each step, the queue processor extracts structured artifacts from the agent's output (social posts, calendar items, documents, and visual specs), scores their quality, and persists them to the workspace so deliverables survive the run.
+
+The local knowledge tools respect department unlocks. `searchLocalFiles` and `readLocalFile` only return workflow kit files for departments unlocked in your workspace; a workspace with `ALL` unlocked has no restriction.
 
 ## HubSpot CRM tools
 
@@ -56,15 +71,20 @@ If neither `HUBSPOT_PAT` nor `HUBSPOT_ACCESS_TOKEN` is set, the tools do not fai
   Fallback responses look like successful tool results to the agent. Before relying on agent-reported CRM changes in production, confirm the token is set. Check tool output for `simulated_success` or the `[Simulated]` prefix to tell fallback results apart from live ones.
 </Warning>
 
-## Refusal guardrail
+## Anti-passivity refusal gate
 
-The queue processor verifies agent output before marking a workflow step complete. Sometimes an agent responds with text claiming it cannot access the CRM or lacks the capability (for example, "I do not have direct access" or "unable to access external" systems) instead of calling a tool. When that happens, the queue processor throws an execution error and the step fails.
+The agent runner classifies every response with a semantic refusal detector before the queue processor marks a workflow step complete. The detector catches two failure patterns:
 
-This guardrail prevents false-positive completions: a step only counts as done when the agent actually executed the work, not when it produced a plausible-sounding refusal. Failed steps surface as errors in the run, so you can retry them or inspect the step configuration.
+- **Capability refusals.** The agent claims it cannot act, for example "I do not have direct access" or "unable to access external" systems.
+- **Passive non-execution.** The agent acknowledges the task without doing it, for example "I have noted the details" or "I will await further instructions".
+
+When either pattern matches, the queue processor fails the step with an error that quotes the matched phrase as evidence. This gate prevents false-positive completions: a step only counts as done when the agent actually executed the work, not when it produced a plausible-sounding refusal or a polite acknowledgment. Failed steps surface as errors in the run, so you can retry them or inspect the step configuration.
+
+The system prompt reinforces the gate from the other side. It instructs agents to execute immediately, invoke tools to persist deliverables, and never reply with passive acknowledgments or clarifying questions.
 
 ## Troubleshooting
 
 - **Agent reports simulated data in production.** No token is set in the environment where the agent runner executes. Set `HUBSPOT_PAT` and restart the server.
 - **Tool output shows a 401 error from HubSpot.** The token is invalid or expired. Generate a new private app token in HubSpot and update the environment variable.
 - **Tool output shows a 403 error from HubSpot.** The private app lacks the required CRM scopes. Grant read and write scopes for deals and contacts.
-- **A step fails with a capability check error.** The refusal guardrail caught the agent claiming it could not act. Retry the run; the system prompt instructs agents to always use the HubSpot tools for CRM work.
+- **A step fails with a refusal or passive non-execution error.** The anti-passivity gate caught the agent claiming it could not act or acknowledging the task without executing it. The error quotes the matched phrase. Retry the run; the system prompt instructs agents to always execute with the available tools.
