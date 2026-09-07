@@ -61,6 +61,12 @@
             "pages": [
               "workflows/founder-signal-system"
             ]
+          },
+          {
+            "group": "Voice agents",
+            "pages": [
+              "voice/pamela-voice-agent"
+            ]
           }
         ]
       },
@@ -97,6 +103,12 @@
             "group": "Integrations",
             "pages": [
               "api-reference/government-apis"
+            ]
+          },
+          {
+            "group": "Voice agent",
+            "pages": [
+              "api-reference/voice-endpoints"
             ]
           }
         ]
