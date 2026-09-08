@@ -118,19 +118,27 @@ Every integration carries a `status` field. New integrations default to `active`
 
 ## Test a connection
 
-Each registered webhook and MCP server has a **Test** action that runs a live handshake through the `settings.testIntegration` mutation. The test reports the protocol negotiated and the roundtrip latency:
+Each registered webhook and MCP server has a **Test** action that runs a live handshake through the `settings.testIntegration` mutation. The test picks the deepest check available for the integration:
+
+1. **Provider-verified checks.** Integrations whose name matches a known provider are validated against that provider's live API using the credentials configured in the environment:
+   - **Instantly** verifies the outbound connection over `REST API v2 (Instantly Outbound)`.
+   - **ElevenLabs** calls the ElevenLabs user endpoint with `ELEVENLABS_API_KEY`. If the key is not set, the test fails with `ELEVENLABS_API_KEY is not configured in environment.`
+   - **HubSpot** queries the CRM contacts endpoint with `HUBSPOT_PAT`. If the key is not set, the test fails with `HUBSPOT_PAT is not configured in environment.`
+2. **Live HTTP ping.** If the integration config includes an `http://` or `https://` endpoint URL, the test sends a `HEAD` request with a 5-second timeout and reports the actual HTTP status and measured roundtrip latency.
+3. **Local fallback.** Integrations with no reachable URL are verified as a local profile and report `Local Plugin / Runtime Hook` (or `Model Context Protocol v1.0 (stdio)` for MCP).
+
+A successful live ping returns the protocol negotiated, the HTTP status, and the roundtrip latency:
 
 ```json
 {
   "success": true,
   "latencyMs": 34,
   "protocol": "Model Context Protocol v1.0 (SSE/stdio)",
-  "message": "Successfully verified handshake with PostgreSQL MCP (34ms roundtrip).",
-  "timestamp": "2026-09-06T19:04:41.000Z"
+  "message": "HTTP 200 OK from https://mcp.agent-lab.tech/sse (34ms roundtrip).",
+  "timestamp": "2026-09-07T20:06:13.000Z"
 }
 ```
 
-- MCP integrations report `Model Context Protocol v1.0 (SSE/stdio)`.
-- Webhook integrations report `REST Webhook / OAuth 2.0`.
+A failed handshake returns `success: false` with the underlying error, for example an HTTP error code or a timeout message, so you can tell a bad credential apart from an unreachable endpoint.
 
 Run a test after adding an integration, and again whenever a workflow that depends on it starts failing, to confirm the endpoint still responds.
