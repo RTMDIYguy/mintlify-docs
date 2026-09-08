@@ -1,0 +1,153 @@
+---
+title: 'Playbooks endpoints'
+description: 'Read the governed cross-department playbooks and their ordered handoff contracts through GET /api/playbooks and GET /api/playbooks/:id.'
+---
+
+## Overview
+
+The playbooks API exposes the governed [cross-department operating playbooks](/workflows/playbooks) and their handoff contracts. Both endpoints are read-only. Write access goes through the idempotent seed script (`pnpm seed:playbooks`), not the API.
+
+Use these endpoints when you need to:
+
+- List every seeded playbook with its full handoff sequence.
+- Fetch one playbook by its stable ID, such as `revenue-lead-to-sale`.
+- Drive a UI or agent that needs owners, payloads, fallbacks, or evidence requirements for a journey.
+
+## List playbooks
+
+```http
+GET /api/playbooks
+```
+
+Returns every playbook ordered by owning department code, then name. Each playbook embeds its handoffs ordered by `sequence`.
+
+```json
+{
+  "playbooks": [
+    {
+      "id": "finance-control-loop",
+      "name": "Finance Control Loop",
+      "description": "Connects pricing, invoicing, payment status, accounting review, and commercial escalation.",
+      "status": "active",
+      "ownerDepartmentCode": "fin",
+      "primaryOwner": "Finance owner",
+      "approvalOwner": "Robert",
+      "trigger": "A price, expense, invoice, payment, or month-end event changes financial state.",
+      "completionCriteria": "The owned finance tracker reflects the event and any required commercial action has an owner and due date.",
+      "stopConditions": ["Unknown transaction", "Missing SKU or account code"],
+      "requiredInputs": ["Transaction or expense record", "Client/project ID"],
+      "expectedOutputs": ["Updated finance tracker", "Variance or overdue alert"],
+      "evidenceRequirements": ["Month-end evidence"],
+      "handoffs": [
+        {
+          "sequence": 1,
+          "fromWorkflowCode": "FIN-01",
+          "toWorkflowCode": "FIN-03",
+          "fromDepartmentCode": "fin",
+          "toDepartmentCode": "fin",
+          "triggerSignal": "...",
+          "requiredPayload": ["..."],
+          "receivingOwner": "Finance owner",
+          "approvalRequired": false,
+          "fallbackProtocol": "...",
+          "stopCondition": "...",
+          "evidenceRequired": ["..."]
+        }
+      ]
+    }
+  ],
+  "totalCount": 5
+}
+```
+
+## Get a playbook
+
+```http
+GET /api/playbooks/:id
+```
+
+Returns a single playbook by its stable ID with its handoffs ordered by `sequence`.
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `id` | string | Playbook ID, for example `revenue-lead-to-sale`, `sale-to-delivery`, `delivery-to-retention`, `finance-control-loop`, or `proof-and-referral-loop`. |
+
+```json
+{
+  "playbook": {
+    "id": "revenue-lead-to-sale",
+    "name": "Revenue Spine: Lead to Sale",
+    "description": "Moves qualified demand from content, outreach, events, and assessments into a governed sales opportunity.",
+    "status": "active",
+    "ownerDepartmentCode": "mkt",
+    "primaryOwner": "Marketing owner",
+    "approvalOwner": "Robert / Sales owner",
+    "trigger": "A lead reaches MQL status through MKT-01, MKT-02, MKT-03, MKT-05, or MKT-09.",
+    "completionCriteria": "A sales-ready opportunity is accepted by SAL-01 with source, fit, offer, owner, and next action recorded.",
+    "stopConditions": ["Lead opts out", "No fit after review"],
+    "requiredInputs": ["Lead identity and consent", "Qualification evidence"],
+    "expectedOutputs": ["Sales-ready opportunity", "Next action and due date"],
+    "evidenceRequirements": ["Qualification record", "Handoff timestamp"],
+    "handoffs": [
+      {
+        "sequence": 4,
+        "fromWorkflowCode": "MKT-01",
+        "toWorkflowCode": "SAL-01",
+        "fromDepartmentCode": "mkt",
+        "toDepartmentCode": "sal",
+        "triggerSignal": "Lead is confirmed as MQL and ready for a commercial conversation.",
+        "requiredPayload": ["lead identity", "fit evidence", "offer interest", "next action"],
+        "receivingOwner": "Sales owner",
+        "approvalRequired": true,
+        "fallbackProtocol": "Marketing sends a structured handoff message and creates a manual sales task.",
+        "stopCondition": "Sales rejects fit or handoff lacks required fields.",
+        "evidenceRequired": ["MQL decision"]
+      }
+    ]
+  }
+}
+```
+
+## Response fields
+
+### Playbook
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | string | Stable playbook ID. |
+| `name` | string | Human-readable playbook name. |
+| `description` | string | What the journey covers. |
+| `status` | string | `draft`, `active`, or `review`. Seeded playbooks are `active`. |
+| `ownerDepartmentCode` | string | Department that owns the journey, such as `mkt`, `sal`, `ful`, or `fin`. |
+| `primaryOwner` | string | Person accountable for running the journey. |
+| `approvalOwner` | string | Person who signs off on the journey. |
+| `trigger` | string | Event that starts the journey. |
+| `completionCriteria` | string | Observable state that ends the journey. |
+| `stopConditions` | string[] | States where the journey must halt. |
+| `requiredInputs` | string[] | Data the journey needs. |
+| `expectedOutputs` | string[] | Artifacts the journey must produce. |
+| `evidenceRequirements` | string[] | Records that prove the journey ran correctly. |
+| `handoffs` | object[] | Ordered handoff contracts (see below). |
+
+### Handoff
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `sequence` | number | Order of the handoff within the playbook. |
+| `fromWorkflowCode` / `toWorkflowCode` | string | Stable workflow codes, such as `MKT-01` and `SAL-01`. |
+| `fromDepartmentCode` / `toDepartmentCode` | string | Department codes on each side of the handoff. |
+| `triggerSignal` | string | Condition that fires the handoff. |
+| `requiredPayload` | string[] | Fields the receiving owner must get. |
+| `receivingOwner` | string | Person accountable for accepting the handoff. |
+| `approvalRequired` | boolean | Whether the handoff needs sign-off before proceeding. |
+| `fallbackProtocol` | string | Manual path when automation is unavailable. |
+| `stopCondition` | string | When the handoff must not proceed. |
+| `evidenceRequired` | string[] | Records that prove the handoff happened. |
+
+## Errors
+
+| Status | Meaning |
+| :--- | :--- |
+| `404` | No playbook exists with the given `id`. Returns `{ "error": "Playbook not found." }`. |
+| `503` | The database is unavailable. Returns `{ "error": "Database unavailable" }`. |
+| `500` | An unexpected error occurred while fetching playbooks. |
