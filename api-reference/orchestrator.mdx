@@ -10,7 +10,7 @@ The orchestrator powers the Ops Agent, the chat modal available throughout Agent
 1. **Synthesis.** `POST /api/orchestrator/chat` turns a natural-language request into a structured multi-agent DAG workflow proposal.
 2. **Execution.** `POST /api/orchestrator/execute` runs an approved proposal in the AgentLab OS runtime and returns a run record.
 
-Use the chat endpoint when you want the Ops Agent to design a workflow from a plain-English prompt. Use the execute endpoint when a proposal has been reviewed and approved and you want to run it.
+Use the chat endpoint when you want the Ops Agent to design a workflow from a plain-English prompt. Use the execute endpoint after you review and approve a proposal and want to run it.
 
 ## The Ops Agent modal runs real workflows
 
@@ -30,16 +30,47 @@ Synthesizes a workflow proposal from a natural-language prompt. The orchestrator
 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `prompt` | string | Yes | Natural-language description of what you want to build or automate. |
+| `prompt` | string | Yes | Natural-language description of what you want to build or automate. Also accepted as `message`. |
+| `model` | string | No | Model to attribute the run to. Defaults to `gemini-2.5-flash`. |
+| `attachments` | array | No | Files to include as context. Each attachment has `name`, `content`, and an optional `type` MIME string. |
 | `context` | object | No | Additional key-value context for the orchestrator. |
 
-If `prompt` is missing or not a string, the endpoint returns `400` with an error message.
+If neither `prompt` nor `message` is a string, the endpoint returns `400` with an error message.
 
 ```bash
 curl -X POST https://your-instance/api/orchestrator/chat \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Sync new HubSpot CRM contacts and deal stages into our tracker"}'
 ```
+
+### Attachments: documents, logs, and screenshots
+
+The chat endpoint is multimodal. The orchestrator sorts attachments by content:
+
+- **Images.** Attachments whose `content` is a `data:image/` URI, or whose `type` starts with `image/`, are passed to the vision model alongside your prompt. Attach a screenshot of an error trace or a dashboard and the Ops Agent inspects it directly.
+- **Text.** All other attachments (documents, audit logs, error traces) are appended to the prompt as context documents.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Why did my content workflow fail last night?",
+    "attachments": [
+      { "name": "error-trace.log", "content": "Failed query: insert into workflow_artifacts..." },
+      { "name": "dashboard.png", "content": "data:image/png;base64,iVBORw0...", "type": "image/png" }
+    ]
+  }'
+```
+
+### Live telemetry diagnostics
+
+The orchestrator reads your workspace's runtime state before answering. Each chat request pulls:
+
+- The 10 most recent audit log entries, filtered to errors and failures.
+- The 5 most recent workflow runs and their statuses.
+- All workflows and agents active in the workspace.
+
+The Ops Agent uses this telemetry to diagnose root causes (for example, schema constraint violations or missing inputs) and to propose a refined DAG that addresses the failure. Use this when a workflow run failed and you want an explanation plus a corrected proposal rather than a generic reply.
 
 ### Response
 

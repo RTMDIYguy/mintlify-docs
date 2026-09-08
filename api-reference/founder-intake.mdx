@@ -62,6 +62,8 @@ Records a qualified lead. Creates a contact submission, sends an intake notifica
 
 ## Auto lead capture in LiveChat
 
+The LiveChat widget appears only on the public landing page and only for signed-out visitors. Authenticated users and inner OS pages never show it.
+
 The LiveChat widget shows quick-select interest options (for example, offer names). Selecting an option now sends the choice straight through `founderIntake.respond` as a user message instead of only pre-filling the input. The widget then:
 
 - Records the selection as the lead's `interest` and, if none was set, its `painPoint`.
