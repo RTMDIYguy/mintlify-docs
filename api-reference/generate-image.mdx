@@ -15,7 +15,7 @@ The pipeline tries **Google Imagen 3** (`imagen-3.0-generate-002`) first when `G
 
 ## Authentication
 
-Requests are scoped to a workspace by the tenant middleware. Requests without a resolvable workspace return `401`.
+The tenant middleware scopes each request to a workspace. Requests without a resolvable workspace return `401`.
 
 ## Request body
 
