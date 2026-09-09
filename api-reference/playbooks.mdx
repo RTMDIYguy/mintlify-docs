@@ -13,6 +13,16 @@ Use these endpoints when you need to:
 - Fetch one playbook by its stable ID, such as `revenue-lead-to-sale`.
 - Drive a UI or agent that needs owners, payloads, fallbacks, or evidence requirements for a journey.
 
+## Authentication
+
+Send a Bearer token in the standard `Authorization` header:
+
+```http
+Authorization: Bearer <Firebase_or_OAuth_JWT_token>
+```
+
+When a valid JWT is present, the tenant middleware decodes it and attaches the caller's workspace context and role to the request. Unauthenticated requests still succeed. They receive the read-only canonical playbook registry instead of tenant-resolved data, so public callers can always read the five canonical playbooks.
+
 ## List playbooks
 
 ```http
@@ -144,10 +154,11 @@ Returns a single playbook by its stable ID with its handoffs ordered by `sequenc
 | `stopCondition` | string | When the handoff must not proceed. |
 | `evidenceRequired` | string[] | Records that prove the handoff happened. |
 
-## Errors
+## Errors and fallback behavior
 
 | Status | Meaning |
 | :--- | :--- |
-| `404` | No playbook exists with the given `id`. Returns `{ "error": "Playbook not found." }`. |
-| `503` | The database is unavailable. Returns `{ "error": "Database unavailable" }`. |
-| `500` | An unexpected error occurred while fetching playbooks. |
+| `404` | No playbook exists with the given `id`, in the database or the canonical registry. Returns `{ "error": "Playbook not found." }`. |
+| `500` | An unexpected error occurred while fetching a playbook by `id`. |
+
+When the database is unavailable, empty, or a query fails, both endpoints fall back to the built-in canonical playbook registry and return `200` with the five canonical playbooks. The fallback is read-only, so listing playbooks degrades gracefully instead of returning `503`.
