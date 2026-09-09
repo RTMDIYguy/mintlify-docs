@@ -43,6 +43,12 @@
             ]
           },
           {
+            "group": "Command Center",
+            "pages": [
+              "command-center/ai-graphic-studio"
+            ]
+          },
+          {
             "group": "Workflow packages",
             "pages": [
               "workflows/overview"
@@ -91,6 +97,12 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Image generation",
+            "pages": [
+              "api-reference/generate-image"
             ]
           },
           {

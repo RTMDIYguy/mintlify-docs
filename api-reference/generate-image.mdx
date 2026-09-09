@@ -1,0 +1,108 @@
+---
+title: 'Generate image'
+description: 'Render a high-resolution AI graphic with Imagen 3 or the Flux Schnell fallback, and optionally attach it to an artifact.'
+---
+
+## Endpoint
+
+```http
+POST /api/generate-image
+```
+
+Generates a visual asset from a text prompt. The endpoint powers the [AI Graphic Studio](/command-center/ai-graphic-studio) in the Command Center and is also available at `POST /api/artifacts/generate-image` for artifact-centric integrations. Both routes run the same handler.
+
+The pipeline tries **Google Imagen 3** (`imagen-3.0-generate-002`) first when `GOOGLE_GENERATIVE_AI_API_KEY` is configured in the server environment. If the key is missing or the Imagen 3 call fails, it falls back to **Flux Schnell** and returns a hosted image URL. The response always reports which engine produced the image.
+
+## Authentication
+
+Requests are scoped to a workspace by the tenant middleware. Requests without a resolvable workspace return `401`.
+
+## Request body
+
+<ParamField body="prompt" type="string" required>
+  Text description of the visual to render. The server enhances the prompt with the style preset, style notes, and default navy/sapphire/emerald brand styling before generation.
+</ParamField>
+
+<ParamField body="title" type="string" default="AI Generated Visual Asset">
+  Title echoed back in the response. Useful for naming downloads.
+</ParamField>
+
+<ParamField body="aspectRatio" type="string" default="16:9">
+  Output aspect ratio. One of `16:9` (1280×720), `1:1` (1024×1024), `4:5` (1024×1280), or `9:16` (720×1280).
+</ParamField>
+
+<ParamField body="stylePreset" type="string">
+  Style preset name prepended to the prompt, for example `Modern B2B Isometric` or `Dark Glassmorphism`.
+</ParamField>
+
+<ParamField body="styleNotes" type="string">
+  Free-form art direction appended to the prompt.
+</ParamField>
+
+<ParamField body="artifactId" type="string">
+  ID of a workflow artifact in your workspace. When provided, the endpoint saves the image URL, engine, aspect ratio, and generation timestamp to the artifact's metadata so the graphic appears in the Generated Assets Vault.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  `true` when generation completed.
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  The title from the request, or the default.
+</ResponseField>
+
+<ResponseField name="imageUrl" type="string">
+  The generated image. Imagen 3 returns a base64 `data:image/jpeg` URI. Flux Schnell returns a hosted image URL.
+</ResponseField>
+
+<ResponseField name="engine" type="string">
+  Engine that produced the image, for example `Google Imagen 3 (imagen-3.0-generate-002)` or `Flux Schnell (High-Fidelity Neural Render)`.
+</ResponseField>
+
+<ResponseField name="aspectRatio" type="string">
+  The aspect ratio used for the render.
+</ResponseField>
+
+<ResponseField name="prompt" type="string">
+  The final enhanced prompt sent to the engine.
+</ResponseField>
+
+<ResponseField name="generatedAt" type="string">
+  ISO 8601 timestamp of the render.
+</ResponseField>
+
+## Errors
+
+| Status | Meaning |
+| :--- | :--- |
+| `400` | `prompt` is missing or empty. |
+| `401` | No workspace could be resolved for the request. |
+| `500` | Generation failed. The body contains an `error` message. |
+
+## Example
+
+```bash
+curl -X POST https://your-app-domain/api/generate-image \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A founder reviewing an AI-driven operations dashboard, interconnected data streams",
+    "title": "Ops Dashboard Hero",
+    "aspectRatio": "16:9",
+    "stylePreset": "Dark Glassmorphism",
+    "artifactId": "9f4a1c2e-7b3d-4e8a-9c1f-2d5e6a7b8c9d"
+  }'
+```
+
+```json
+{
+  "success": true,
+  "title": "Ops Dashboard Hero",
+  "imageUrl": "data:image/jpeg;base64,...",
+  "engine": "Google Imagen 3 (imagen-3.0-generate-002)",
+  "aspectRatio": "16:9",
+  "prompt": "[Style: Dark Glassmorphism] A founder reviewing an AI-driven operations dashboard, interconnected data streams. Professional high-contrast B2B aesthetic, navy (#0F172A), sapphire blue, and emerald accents.",
+  "generatedAt": "2026-09-08T18:14:00.000Z"
+}
+```

@@ -1,0 +1,65 @@
+---
+title: "AI Graphic Studio"
+description: "Generate high-resolution brand graphics from the Command Center using Google Imagen 3 with an automatic Flux Schnell fallback."
+---
+
+The AI Graphic Studio turns text prompts into high-resolution visual assets directly inside the Command Center. It renders social graphics, executive portraits, and dashboard-style illustrations using Google Imagen 3, and automatically falls back to Flux Schnell when Imagen 3 is unavailable.
+
+Use the studio when you need:
+
+- Social graphics or anchor visuals for content produced by a workflow run.
+- A rendered image for an artifact that includes a visual specification.
+- Quick brand-consistent concept art without leaving the Command Center.
+
+## Prerequisites
+
+- Access to the Command Center.
+- Optional: a `GOOGLE_GENERATIVE_AI_API_KEY` configured in the server environment. With the key set, generation uses Google Imagen 3 (`imagen-3.0-generate-002`). Without it, generation uses the Flux Schnell fallback engine. No other configuration is required.
+
+## Two ways to generate a graphic
+
+### From the Generated Assets Vault
+
+The Generated Assets Vault card in the Command Center includes an **AI Studio** button that opens the standalone AI Graphic Studio modal. Use this path when you want to create a graphic from scratch.
+
+1. Open the Command Center and find the **Generated Assets Vault** card.
+2. Select **AI Studio**. The modal opens pre-filled with an example prompt.
+3. Pick a style preset:
+   - **Modern B2B Isometric**: clean 3D UI and vectors.
+   - **Dark Glassmorphism**: glowing tech dashboard.
+   - **Founder / Executive**: crisp studio portrait.
+   - **Minimalist Vector**: high-contrast editorial.
+4. Describe your visual concept in the prompt field.
+5. Choose an aspect ratio: `16:9`, `1:1`, `4:5`, or `9:16`.
+6. Generate the graphic, then download it or copy its URL.
+
+### From an artifact
+
+When you open an artifact in the Command Center, the **AI Graphic Studio** card appears in the artifact detail view. Use this path to render a visual for an existing content specification.
+
+1. Open an artifact from the Generated Assets Vault.
+2. In the **AI Graphic Studio** card, choose an aspect ratio.
+3. Select **Generate AI Graphic Now**. The studio uses the artifact's visual prompt if one exists. Otherwise it extracts the prompt template from the artifact content, or falls back to the opening text of the artifact.
+4. When the render completes, the image appears in the card with its aspect ratio and engine overlaid. Select **Re-generate Graphic** to try another render, **Download** to save the image, or **Copy URL** to copy the image address.
+
+Generating from an artifact saves the image URL, engine, aspect ratio, and generation timestamp to the artifact's metadata. The graphic stays attached to the artifact in the Generated Assets Vault.
+
+## Asset badges in the vault
+
+The Generated Assets Vault marks visual assets so you can see their state at a glance:
+
+- **🎨 Graphic Ready**: the artifact has a generated image attached.
+- **🎨 Visual Spec**: the artifact is a visual specification that has not been rendered yet.
+
+An engine badge on the AI Graphic Studio card shows which engine produced the current image: **Imagen 3** or **Flux Schnell**.
+
+## Engine selection and brand styling
+
+The studio tries engines in order:
+
+1. **Google Imagen 3** (`imagen-3.0-generate-002`), used when `GOOGLE_GENERATIVE_AI_API_KEY` is set. Returns the image as an embedded JPEG.
+2. **Flux Schnell**, used automatically when the key is missing or the Imagen 3 request fails. Returns a hosted image URL.
+
+Before rendering, the studio enhances your prompt. It prepends the selected style preset, appends any art-direction notes, and adds a professional B2B aesthetic with navy (`#0F172A`), sapphire blue, and emerald accents unless your prompt already specifies navy branding.
+
+To generate graphics programmatically instead of through the UI, see the [Generate image endpoint](/api-reference/generate-image).
