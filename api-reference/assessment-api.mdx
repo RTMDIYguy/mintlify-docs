@@ -1,0 +1,160 @@
+---
+title: "Assessment API"
+description: "List, create, delete, and AI-generate assessment questions, and save diagnostic sessions."
+---
+
+## Overview
+
+The Assessment API backs the [Assessment Question Generator](/tools/assessment-question-generator). It manages a Postgres-backed bank of consulting diagnostic questions and records completed assessment sessions.
+
+All endpoints live under `/api`. Responses are JSON with a `success` boolean. Errors return `success: false` and an `error` message with HTTP `400` (validation), `503` (missing AI key), or `500` (server error).
+
+Questions and sessions are scoped by `workspaceId`. Records with no `workspaceId` are global and visible to every workspace.
+
+## List assessment questions
+
+```http
+GET /api/assessment-questions
+```
+
+Returns questions ordered by creation date, newest first. The first call seeds the bank with 18 default system questions if the table is empty.
+
+Query parameters:
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `domain` | string | Filter by domain: `Operations`, `Sales`, `Marketing`, `Finance`, `Technology`, or `Leadership`. Pass `all` or omit to include every domain. |
+| `depth` | string | Filter by depth: `exploratory`, `diagnostic`, or `executive`. Pass `all` or omit to include every depth. |
+| `workspaceId` | string | Limit results to global questions plus questions in this workspace. |
+
+```bash
+curl "https://your-domain.com/api/assessment-questions?domain=Sales&depth=diagnostic"
+```
+
+Response (`200`):
+
+```json
+{
+  "success": true,
+  "count": 1,
+  "questions": [
+    {
+      "id": "3f6f4e0a-...",
+      "domain": "Sales",
+      "depth": "diagnostic",
+      "text": "Which follow-up step is most likely to be missed when someone shows interest?",
+      "skill": "Follow-Up Reliability",
+      "evaluation": "Identifies lost revenue risk from inconsistent nurture, ownership, or timing.",
+      "signals": ["follow up", "reply", "email", "call", "missed", "nurture"],
+      "isCustom": false,
+      "source": "system"
+    }
+  ]
+}
+```
+
+## Create an assessment question
+
+```http
+POST /api/assessment-questions
+```
+
+Creates a custom question. Requires `domain`, `text`, `skill`, and `evaluation`; missing fields return `400`.
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `domain` | string | Yes | Question domain. |
+| `text` | string | Yes | The verbatim question to ask. |
+| `skill` | string | Yes | Consulting skill the question exercises. |
+| `evaluation` | string | Yes | What to listen for in the answer. |
+| `depth` | string | No | Defaults to `exploratory`. |
+| `signals` | string[] | No | Keyword signals to detect in call notes. Defaults to `[]`. |
+| `source` | string | No | Defaults to `manual`. |
+| `workspaceId` | string | No | Workspace to scope the question to. |
+
+```bash
+curl -X POST "https://your-domain.com/api/assessment-questions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "domain": "Operations",
+    "depth": "diagnostic",
+    "text": "Which recurring task takes the longest between request and completion?",
+    "skill": "Latency Audit",
+    "evaluation": "Listens for undefined ownership and missing status visibility.",
+    "signals": ["delay", "waiting", "status"]
+  }'
+```
+
+Returns `201` with the created record in `question`.
+
+## Delete an assessment question
+
+```http
+DELETE /api/assessment-questions/:id
+```
+
+Deletes the question with the given ID. Returns `200` with a confirmation message.
+
+```bash
+curl -X DELETE "https://your-domain.com/api/assessment-questions/3f6f4e0a-..."
+```
+
+## Generate questions with AI
+
+```http
+POST /api/assessment-questions/generate-ai
+```
+
+Synthesizes new diagnostic questions with Gemini and persists them to the bank with `source: "ai_synthesized"`. Requires the `GOOGLE_GENERATIVE_AI_API_KEY` environment variable; if it is not set, the endpoint returns `503`.
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `domain` | string | No | Defaults to `Operations`. |
+| `focusArea` | string | No | Defaults to `General Discovery`. |
+| `industry` | string | No | Defaults to `B2B Professional Services`. |
+| `count` | number | No | Number of questions to generate. Defaults to `3`. |
+| `workspaceId` | string | No | Workspace to scope the questions to. |
+
+```bash
+curl -X POST "https://your-domain.com/api/assessment-questions/generate-ai" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "domain": "Finance",
+    "focusArea": "Cash flow visibility",
+    "industry": "Professional Services",
+    "count": 3
+  }'
+```
+
+Returns `201` with the inserted questions in `questions`. The endpoint tries `gemini-2.5-flash` first and falls back to `gemini-1.5-flash`, then `gemini-1.5-pro`.
+
+## Save an assessment session
+
+```http
+POST /api/assessment-sessions
+```
+
+Saves a completed discovery or diagnostic session. Requires `callNotes`; a missing value returns `400`.
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `callNotes` | string | Yes | Raw notes from the call. |
+| `clientName` | string | No | Defaults to `Client Discovery`. |
+| `domain` | string | No | Defaults to `All`. |
+| `detectedSignals` | string[] | No | Signal keywords detected in the notes. |
+| `findings` | array | No | Structured findings from the session. |
+| `selectedQuestionIds` | string[] | No | IDs of the questions used in the session. |
+| `workspaceId` | string | No | Workspace to scope the session to. |
+
+```bash
+curl -X POST "https://your-domain.com/api/assessment-sessions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientName": "Acme Consulting",
+    "domain": "Operations",
+    "callNotes": "Founder chases status updates manually; delivery handoffs are undocumented.",
+    "detectedSignals": ["handoff", "manual", "status"]
+  }'
+```
+
+Returns `201` with the saved record in `session`.

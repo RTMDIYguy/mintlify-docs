@@ -61,6 +61,13 @@
             "pages": [
               "workflows/founder-signal-system"
             ]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "tools/icp-generator",
+              "tools/assessment-question-generator"
+            ]
           }
         ]
       },
@@ -97,6 +104,13 @@
             "group": "Integrations",
             "pages": [
               "api-reference/government-apis"
+            ]
+          },
+          {
+            "group": "GTM tools",
+            "pages": [
+              "api-reference/icp-api",
+              "api-reference/assessment-api"
             ]
           }
         ]
