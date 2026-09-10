@@ -52,6 +52,33 @@ Three toggles gate how the agent reasons. All three are on by default:
 
 Click **Save** to persist the configuration. Saving updates the orchestrator name, default model, and system prompt on the server.
 
+## Secrets vault
+
+The Secrets Vault (API Keys) tab stores provider credentials and bridges them to the live environment. When you save a secret, the platform applies it to the running process immediately. No restart is required, and a connection test run right after saving uses the new credential.
+
+To add a secret, enter a provider name and the secret value, then click **Save**. The vault:
+
+- Normalizes the provider name to its canonical environment key. For example, `hubspot`, `hubspot_pat`, and `hubspot_access_token` all map to `HUBSPOT_PAT`; unrecognized providers map to the uppercased provider name.
+- Stores only a masked preview of the value, in the form `sk_1••••••••e0a1`. Values of 8 characters or fewer show as a fully masked placeholder.
+- Increments the secret's version each time you update an existing provider.
+
+Recognized provider mappings:
+
+| Provider name contains | Environment key |
+| :--- | :--- |
+| `instantly` | `INSTANTLY_API_KEY` |
+| `hubspot` | `HUBSPOT_PAT` |
+| `elevenlabs` | `ELEVENLABS_API_KEY` |
+| `agentmail` | `AGENTMAIL_API_KEY` |
+| `google` or `gemini` | `GOOGLE_GENERATIVE_AI_API_KEY` |
+| `openai` | `OPENAI_API_KEY` |
+| `anthropic` or `claude` | `ANTHROPIC_API_KEY` |
+| `stripe` | `STRIPE_SECRET_KEY` |
+
+### Automatic provider sync
+
+The vault also syncs in the other direction. Whenever you open the secrets or integrations list, the platform scans the environment for five core provider keys and registers any it finds as vault entries and integrations: Instantly (`INSTANTLY_API_KEY`), HubSpot (`HUBSPOT_PAT`), ElevenLabs (`ELEVENLABS_API_KEY`), AgentMail (`AGENTMAIL_API_KEY`), and Google Gemini (`GOOGLE_GENERATIVE_AI_API_KEY`). Credentials configured outside the app show up in the vault with a masked preview and a `connected` status without any manual registration.
+
 ## Integrations & MCP hub
 
 The Integrations & MCP tab manages three kinds of connections: built-in OS integrations, custom webhooks, and MCP servers.
@@ -120,10 +147,12 @@ Every integration carries a `status` field. New integrations default to `active`
 
 Each registered webhook and MCP server has a **Test** action that runs a live handshake through the `settings.testIntegration` mutation. The test picks the deepest check available for the integration:
 
-1. **Provider-verified checks.** Integrations whose name matches a known provider are validated against that provider's live API using the credentials configured in the environment:
-   - **Instantly** verifies the outbound connection over `REST API v2 (Instantly Outbound)`.
-   - **ElevenLabs** calls the ElevenLabs user endpoint with `ELEVENLABS_API_KEY`. If the key is not set, the test fails with `ELEVENLABS_API_KEY is not configured in environment.`
-   - **HubSpot** queries the CRM contacts endpoint with `HUBSPOT_PAT`. If the key is not set, the test fails with `HUBSPOT_PAT is not configured in environment.`
+1. **Provider-verified checks.** Integrations whose name matches a known provider are validated against that provider's live API using the credentials configured in the environment or [secrets vault](#secrets-vault):
+   - **Instantly** verifies the outbound connection over `REST API v2 (Instantly Outbound)` using `INSTANTLY_API_KEY`.
+   - **ElevenLabs** (names containing `elevenlabs` or `pamela`) calls the ElevenLabs user endpoint with `ELEVENLABS_API_KEY`.
+   - **HubSpot** queries the CRM contacts endpoint with `HUBSPOT_PAT` (also accepting `HUBSPOT_ACCESS_TOKEN`, `HUBSPOT_DEVELOPER_API_KEY`, or `HUBSPOT_API_KEY`).
+
+   If the required key is missing, the test fails with a message naming the key, for example `ELEVENLABS_API_KEY is not configured in environment or vault.`
 2. **Live HTTP ping.** If the integration config includes an `http://` or `https://` endpoint URL, the test sends a `HEAD` request with a 5-second timeout and reports the actual HTTP status and measured roundtrip latency.
 3. **Local fallback.** Integrations with no reachable URL are verified as a local profile and report `Local Plugin / Runtime Hook` (or `Model Context Protocol v1.0 (stdio)` for MCP).
 
