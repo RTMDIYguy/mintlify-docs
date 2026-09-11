@@ -1,0 +1,189 @@
+---
+title: 'Orchestrator API'
+description: 'Synthesize multi-agent DAG workflow proposals with POST /api/orchestrator/chat and run approved proposals in AgentLab OS with POST /api/orchestrator/execute.'
+---
+
+## Overview
+
+The orchestrator powers the Ops Agent, the chat modal available throughout AgentLab. It works in two stages:
+
+1. **Synthesis.** `POST /api/orchestrator/chat` turns a natural-language request into a structured multi-agent DAG workflow proposal.
+2. **Execution.** `POST /api/orchestrator/execute` runs an approved proposal in the AgentLab OS runtime and returns a run record.
+
+Use the chat endpoint when you want the Ops Agent to design a workflow from a plain-English prompt. Use the execute endpoint after you review and approve a proposal and want to run it.
+
+## The Ops Agent modal runs real workflows
+
+The Ops Agent modal is no longer a synthesis-only assistant. When the orchestrator returns a workflow proposal, the modal renders it as an actionable DAG plan card with an execution steps checklist and an **Approve & Execute DAG in OS** button.
+
+Clicking the button sends the proposal to `POST /api/orchestrator/execute`. The modal then:
+
+- Shows execution progress while the DAG swarm runs.
+- Marks the plan card as **Executed in OS** with the returned run ID on success.
+- Emits an `agentlab:workflow-executed` browser event so other parts of the OS can react to the completed run.
+
+## POST /api/orchestrator/chat
+
+Synthesizes a workflow proposal from a natural-language prompt. The orchestrator matches the prompt against the URC department playbooks unlocked for your workspace and returns a proposal scoped to the best-fit department.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `prompt` | string | Yes | Natural-language description of what you want to build or automate. Also accepted as `message`. |
+| `model` | string | No | Model to attribute the run to. Defaults to `gemini-2.5-flash`. |
+| `attachments` | array | No | Files to include as context. Each attachment has `name`, `content`, and an optional `type` MIME string. |
+| `context` | object | No | Additional key-value context for the orchestrator. |
+
+If neither `prompt` nor `message` is a string, the endpoint returns `400` with an error message.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Sync new HubSpot CRM contacts and deal stages into our tracker"}'
+```
+
+### Attachments: documents, logs, and screenshots
+
+The chat endpoint is multimodal. The orchestrator sorts attachments by content:
+
+- **Images.** Attachments whose `content` is a `data:image/` URI, or whose `type` starts with `image/`, are passed to the vision model alongside your prompt. Attach a screenshot of an error trace or a dashboard and the Ops Agent inspects it directly.
+- **Text.** All other attachments (documents, audit logs, error traces) are appended to the prompt as context documents.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Why did my content workflow fail last night?",
+    "attachments": [
+      { "name": "error-trace.log", "content": "Failed query: insert into workflow_artifacts..." },
+      { "name": "dashboard.png", "content": "data:image/png;base64,iVBORw0...", "type": "image/png" }
+    ]
+  }'
+```
+
+### Live telemetry diagnostics
+
+The orchestrator reads your workspace's runtime state before answering. Each chat request pulls:
+
+- The 10 most recent audit log entries, filtered to errors and failures.
+- The 5 most recent workflow runs and their statuses.
+- All workflows and agents active in the workspace.
+
+The Ops Agent uses this telemetry to diagnose root causes (for example, schema constraint violations or missing inputs) and to propose a refined DAG that addresses the failure. Use this when a workflow run failed and you want an explanation plus a corrected proposal rather than a generic reply.
+
+### Response
+
+Returns `200` with a reply and, when a workflow matched, a structured proposal:
+
+```json
+{
+  "reply": "I have synthesized an active multi-agent DAG execution plan...",
+  "proposal": {
+    "id": "WFP-SAL-1024",
+    "name": "HubSpot CRM Contact & Deal Synchronization",
+    "description": "Direct synchronization bridge between HubSpot CRM and AgentLab multi-agent state...",
+    "departmentCode": "sal",
+    "estimatedCostPerRun": 0.02,
+    "estimatedLatencySeconds": 8,
+    "triggerType": "HubSpot Webhook / Scheduled Polling",
+    "guardrails": [
+      "Pre-execution rate-limit check",
+      "Row Level Security (RLS) tenant boundary verification",
+      "PII redaction and GDPR/CCPA scrub before LLM inference",
+      "Human-in-the-loop approval before external dispatch"
+    ],
+    "steps": [
+      { "stepNumber": 1, "type": "trigger", "title": "HubSpot CRM Webhook Ingestion", "detail": "..." },
+      { "stepNumber": 2, "type": "agent", "title": "Sales & CRM Intelligence Agent", "detail": "...", "agentId": "agent-sal-crm" },
+      { "stepNumber": 3, "type": "guardrail", "title": "SAIF Compliance & PII Gate", "detail": "..." },
+      { "stepNumber": 4, "type": "destination", "title": "HubSpot & M365 Commit", "detail": "..." }
+    ],
+    "reply": "..."
+  },
+  "timestamp": "2026-09-04T12:00:00.000Z",
+  "executionMetrics": {
+    "latencyMs": 1240,
+    "tokensUsed": 512,
+    "model": "gemini-2.5-flash"
+  }
+}
+```
+
+Each proposal step is a DAG node with a `type` of `trigger`, `agent`, `guardrail`, or `destination`. Agent steps can carry an `agentId` identifying the assigned specialist agent.
+
+### Prompt matching
+
+When the LLM is unavailable, the orchestrator falls back to keyword matching against the workflow catalog. Recognized themes include CRM and pipeline sync (HubSpot), lead generation and outreach, content creation, finance and runway, client onboarding and fulfillment, and audits and compliance. Prompts that match no theme default to an operations workflow.
+
+## POST /api/orchestrator/execute
+
+Executes an approved workflow proposal in the AgentLab OS runtime. Pass either the full `proposal` object returned by the chat endpoint or a `workflowId` referencing an existing workflow.
+
+Every execution is persisted. The orchestrator:
+
+1. Registers the workflow in your workspace if it does not exist yet.
+2. Records a workflow run with its trigger source, start and completion times, and the proposal as initial context.
+3. Generates deliverable artifacts and stores them in the Artifact Vault (see below).
+4. Writes an audit log entry with SAIF policy checks, latency, token usage, and the list of generated artifacts.
+
+Run history, artifacts, and audit entries then feed the live telemetry that `POST /api/orchestrator/chat` uses for diagnostics.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `proposal` | object | One of | A workflow proposal object returned by `POST /api/orchestrator/chat`. |
+| `workflowId` | string | One of | ID of an existing workflow to run instead of a proposal. |
+
+Provide at least one of `proposal` or `workflowId`.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/execute \
+  -H "Content-Type: application/json" \
+  -d '{"proposal": {"id": "WFP-SAL-1024", "name": "HubSpot CRM Contact & Deal Synchronization", "departmentCode": "sal", "steps": [...]}}'
+```
+
+### Response
+
+Returns `200` with the run record:
+
+```json
+{
+  "success": true,
+  "runId": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+  "workflowName": "HubSpot CRM Contact & Deal Synchronization",
+  "departmentCode": "SAL",
+  "status": "completed",
+  "timestamp": "2026-09-08T12:00:05.000Z",
+  "artifactsCount": 1,
+  "artifacts": ["HubSpot CRM Contact & Deal Synchronization - Consolidated Artifact"],
+  "executionMetrics": {
+    "latencyMs": 32,
+    "tokensUsed": 480,
+    "model": "gemini-2.5-flash",
+    "saifVerified": true
+  },
+  "summary": "Executed \"HubSpot CRM Contact & Deal Synchronization\" across 4 multi-agent DAG nodes in AgentLab OS. 1 deliverables generated and stored in Artifact Vault."
+}
+```
+
+| Field | Description |
+| :--- | :--- |
+| `runId` | Unique identifier for this execution run. This is the persisted run record ID. |
+| `workflowName` | Name of the executed workflow, taken from the proposal or workflow ID. |
+| `departmentCode` | Uppercase department code the run was attributed to. Defaults to `OPS`. |
+| `status` | Run outcome. `completed` on success. |
+| `artifactsCount` | Number of deliverables generated by the run. |
+| `artifacts` | Titles of the deliverables stored in the Artifact Vault. |
+| `executionMetrics.saifVerified` | Whether the run passed SAIF compliance verification. |
+| `summary` | Human-readable summary of the run. |
+
+### Artifact Vault deliverables
+
+Every run produces tangible deliverables in the Artifact Vault. Each artifact carries a type (`document` or `post`), a summary, a target platform, and a quality score and grade.
+
+The deliverables depend on the workflow domain:
+
+- **Founder Signal System runs.** Workflows named after the Founder Signal System, attributed to the Marketing department, or containing ICP or content steps generate four marketing deliverables: an ICP and core pain signal brief, a core message map with value pillars, an authority content batch of three LinkedIn post drafts targeted for syndication, and a proof loop and traction tracking plan. See [Founder Signal System](/workflows/founder-signal-system) for how these deliverables fit the package.
+- **All other runs.** The orchestrator generates one consolidated artifact documenting each executed DAG step and an operational summary.
