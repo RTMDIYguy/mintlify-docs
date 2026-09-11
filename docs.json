@@ -56,6 +56,12 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "platform/auditing"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
@@ -112,6 +118,12 @@
             "pages": [
               "api-reference/government-apis",
               "api-reference/ai-studio-sync"
+            ]
+          },
+          {
+            "group": "Audit logs",
+            "pages": [
+              "api-reference/audit-logs"
             ]
           }
         ]
