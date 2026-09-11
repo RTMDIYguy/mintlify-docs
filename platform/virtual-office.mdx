@@ -1,0 +1,70 @@
+---
+title: "Virtual Office & Comms suite"
+description: "Meet with clients on live video, message your team and clients, and record async screen teardowns without leaving Agent Lab."
+---
+
+The Virtual Office & Comms suite turns Agent Lab into a complete client communication cockpit. It bundles three surfaces: a live video war room, a unified client messenger, and an async screen teardown studio. Use it to run discovery calls, keep client threads in one place, and send Loom-style walkthrough videos without paying for external meeting, chat, or recording tools.
+
+## Where to find it
+
+All three surfaces appear in the **Virtual Office & Comms** section of the dashboard sidebar and as cards on the dashboard itself:
+
+| Surface | Route | Sidebar label |
+| --- | --- | --- |
+| Live Video & Screen War Room | `/meeting` | Video & Screen Room |
+| Unified Client Messenger | `/messages` | Client Messenger |
+| Async Screen & Video Teardown Studio | `/screen-recorder` | Teardown Studio |
+
+## Live Video & Screen War Room
+
+The war room at `/meeting` hosts live video calls with screen sharing through embedded WebRTC video. Clients join from a browser link with no software download and no account.
+
+Use it for client strategy sessions, diagnostic walkthroughs, and internal standups.
+
+- **Launch a room.** Enter a room name and select **Launch War Room**, or pick one of the preset rooms for common session types such as founder sprint discovery or agency ops standups. Room names are lowercased and restricted to letters, numbers, and hyphens.
+- **Invite a client.** Select **Copy Client Invite** to copy a join link. The link encodes the room name as a query parameter, so anyone opening it lands in the same room:
+
+  ```text
+  https://<your-app-domain>/meeting?room=founder-sprint-discovery
+  ```
+
+- **Take notes and summarize.** A meeting scratchpad sits beside the video stage. After the call, generate an AI executive summary from your notes that includes key findings and next action items.
+- **Track the call.** A live timer shows the session duration while you are connected. Select **End Session** to leave.
+
+## Unified Client Messenger
+
+The messenger at `/messages` combines internal team channels and direct client threads in one inbox.
+
+Use it to keep office chatter, sales updates, fulfillment briefs, and client conversations out of scattered email threads.
+
+- **Team channels.** Four office channels are set up by default: `#general-office`, `#sales-and-leads`, `#fulfillment-briefs`, and `#client-portal`.
+- **Direct messages.** Client and partner threads show each contact's company, role, and online status.
+- **Send a War Room invite.** From any thread, dispatch a meeting invite. The messenger drops a `/meeting?room=...` join link into the chat so the client can jump straight into a live call.
+- **AI response assistant.** Select the AI draft button to generate a suggested reply based on the active thread. The draft lands in the message box for you to review and edit before sending.
+
+<Note>
+  Message history is stored in your browser's local storage. Clearing site data resets threads to their defaults.
+</Note>
+
+## Async Screen & Video Teardown Studio
+
+The teardown studio at `/screen-recorder` records your screen and microphone directly in the browser using the native MediaRecorder API. No extension or desktop app is required.
+
+Use it to send clients async audit walkthroughs, workflow teardowns, and deliverable reviews when a live call is unnecessary.
+
+1. Select **Start Screen Teardown** and pick the screen, window, or tab to capture. The studio records your microphone alongside the screen.
+2. Stop the recording to get instant in-page playback.
+3. Give the recording a title, then select **Download Video (.webm)** to save the file and share it with your client.
+4. Generate an **AI Teardown Brief** to produce a written summary of the recording's findings and next steps.
+5. Save the teardown to index it in the Results Vault. The **Recent Teardown Library** lists your saved recordings.
+
+Recordings are captured as `.webm` video (VP9 where the browser supports it).
+
+## Browser requirements
+
+The war room and teardown studio depend on browser media permissions:
+
+- Allow **camera and microphone** access for live meetings.
+- Allow **screen capture** access for screen sharing and teardown recording.
+
+Use a current version of Chrome, Edge, or Firefox for full MediaRecorder and WebRTC support.

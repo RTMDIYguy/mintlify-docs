@@ -27,6 +27,12 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "platform/virtual-office"
+            ]
+          },
+          {
             "group": "Customization",
             "pages": [
               "essentials/settings",
