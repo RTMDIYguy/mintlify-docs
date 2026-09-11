@@ -1,0 +1,149 @@
+---
+title: 'Instantly.ai outbound engine'
+description: 'Configure the Instantly.ai integration, verify API connectivity, list campaigns, and receive campaign engagement events through the webhook receiver.'
+---
+
+## Overview
+
+The Instantly.ai Outbound Engine connects Agent Lab to your [Instantly.ai](https://instantly.ai) workspace for cold email outreach. The integration talks to the Instantly v2 REST API and provides:
+
+- **Connection verification** to confirm your API key authenticates correctly.
+- **Campaign listing** to query the campaigns in your Instantly workspace.
+- **A webhook receiver** that ingests Instantly engagement events and classifies positive replies as hot leads.
+
+Use this integration when you run cold outbound campaigns in Instantly and want Agent Lab to surface interested leads automatically instead of monitoring replies by hand.
+
+<Note>
+  The integration operates under trial governance. It is flagged as a trial
+  integration in the operational register so that no unbudgeted costs accrue
+  when the Instantly trial concludes.
+</Note>
+
+## Configuration
+
+Authentication uses a single environment variable. Every Instantly endpoint reads it at request time:
+
+```bash
+INSTANTLY_API_KEY="your-instantly-api-key"
+```
+
+Generate the key in your Instantly workspace under **Settings > Integrations > API keys**. If the variable is unset, Instantly endpoints fail with the error `INSTANTLY_API_KEY is not configured in environment.`
+
+## Verify the connection
+
+```http
+GET /api/outbound/instantly/verify
+```
+
+Checks connectivity and authentication against the Instantly v2 API by requesting a single campaign. Call this endpoint after setting `INSTANTLY_API_KEY` to confirm the integration is live.
+
+Returns HTTP `200` on success:
+
+```json
+{
+  "success": true,
+  "message": "Instantly.ai connected successfully via v2 API. Authentication verified.",
+  "campaignCount": 1
+}
+```
+
+Returns HTTP `400` with `success: false` when Instantly rejects the request (for example, an invalid API key). The `message` field includes the upstream status code and error text. Returns HTTP `500` if the request itself fails.
+
+## List campaigns
+
+```http
+GET /api/outbound/instantly/campaigns
+```
+
+Retrieves campaigns from your Instantly workspace.
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | integer | `10` | Maximum number of campaigns to return. |
+| `skip` | integer | `0` | Number of campaigns to skip, for pagination. |
+
+### Example
+
+```bash
+curl "https://your-app-domain/api/outbound/instantly/campaigns?limit=5&skip=0"
+```
+
+Returns HTTP `200`:
+
+```json
+{
+  "success": true,
+  "count": 5,
+  "campaigns": [
+    {
+      "id": "camp_12345",
+      "name": "Founder M365 Modernization Q3"
+    }
+  ]
+}
+```
+
+Campaign objects are returned as provided by the Instantly v2 API. Returns HTTP `500` with an error message if the Instantly request fails.
+
+## Webhook receiver
+
+```http
+POST /api/webhooks/instantly
+```
+
+Receives engagement events from Instantly. Configure this URL as a webhook destination in your Instantly workspace so campaign activity flows into Agent Lab as it happens.
+
+### Event payload
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `event_type` | string | Yes | One of `reply_received`, `lead_interested`, `lead_not_interested`, `email_sent`, `email_opened`, `link_clicked`. |
+| `lead_email` | string | Yes | Email address of the lead. Requests without it return HTTP `400`. |
+| `campaign_id` | string | No | Instantly campaign ID. |
+| `campaign_name` | string | No | Instantly campaign name. |
+| `lead_first_name` | string | No | Lead first name. |
+| `lead_last_name` | string | No | Lead last name. |
+| `company_name` | string | No | Lead company name. |
+| `reply_text` | string | No | Reply body, used for hot-lead classification. |
+| `timestamp` | string | No | Event timestamp. |
+
+### Hot-lead classification
+
+The receiver classifies each event and returns the action it took:
+
+- `lead_interested` events are always flagged as hot leads.
+- `reply_received` events are flagged as hot leads when the reply text contains buying-intent keywords such as "interested", "schedule", "call", "demo", or "pricing".
+- All other events are logged as activity without triggering alerts.
+
+### Example
+
+```bash
+curl -X POST "https://your-app-domain/api/webhooks/instantly" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_type": "reply_received",
+    "campaign_id": "camp_12345",
+    "campaign_name": "Founder M365 Modernization Q3",
+    "lead_email": "ceo@example.com",
+    "reply_text": "This looks interesting. Can we schedule a call this Thursday?"
+  }'
+```
+
+Returns HTTP `200`:
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-09-06T20:28:05.000Z",
+  "processed": {
+    "actionTaken": "flagged_hot_lead",
+    "leadEmail": "ceo@example.com",
+    "summary": "Hot Outbound Lead detected via Instantly. Campaign: Founder M365 Modernization Q3. Reply snippet: \"This looks interesting. Can we schedule a call this Thursday?\"",
+    "isHotLead": true
+  }
+}
+```
+
+For non-hot events, `processed.actionTaken` is `logged_activity` and `isHotLead` is `false`. Returns HTTP `400` when `lead_email` is missing and HTTP `500` on processing errors.
