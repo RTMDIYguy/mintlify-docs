@@ -16,7 +16,7 @@ Use this API when you capture data or need to control workflows away from your d
 
 ## Authentication
 
-Requests are scoped to a workspace by the tenant middleware:
+The tenant middleware scopes requests to a workspace:
 
 - Send a Bearer JWT in the `Authorization` header. AgentLab resolves the workspace from the token's `email` claim.
 - Without a token, send an `X-Workspace-Id` header to select a workspace directly. If the header is omitted, requests fall back to the default workspace.
@@ -58,7 +58,7 @@ Poll this endpoint for a manual sync, or register a webhook (below) to receive p
 
 ## Ingest roaming data
 
-`POST /api/sync/ingest` records mobile-captured data in AgentLab OS. Every ingestion is written to the audit log and can optionally trigger a workflow run.
+`POST /api/sync/ingest` records mobile-captured data in AgentLab OS. AgentLab writes every ingestion to the audit log and can optionally trigger a workflow run.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
@@ -169,5 +169,5 @@ AgentLab delivers events as JSON POSTs to the registered URL:
 The endpoint returns `400` if `endpointUrl` is missing or does not start with `http`.
 
 <Note>
-  Webhook subscriptions are held in server memory. Re-register your endpoint after a server restart.
+  AgentLab holds webhook subscriptions in server memory. Re-register your endpoint after a server restart.
 </Note>
