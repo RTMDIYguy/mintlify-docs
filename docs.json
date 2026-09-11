@@ -94,6 +94,12 @@
             "pages": [
               "agents/managing-agents"
             ]
+          },
+          {
+            "group": "Voice agents",
+            "pages": [
+              "voice/pamela-voice-agent"
+            ]
           }
         ]
       },
@@ -163,6 +169,12 @@
             "group": "Workspace snapshots",
             "pages": [
               "api-reference/snapshots"
+            ]
+          },
+          {
+            "group": "Voice agent",
+            "pages": [
+              "api-reference/voice-endpoints"
             ]
           }
         ]

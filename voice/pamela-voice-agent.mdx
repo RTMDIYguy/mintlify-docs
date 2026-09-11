@@ -1,0 +1,62 @@
+---
+title: 'Pamela voice agent'
+description: 'Configure the ElevenLabs-backed Pamela voice agent, the site-wide web voice widget, and the voicemail greeting generator.'
+---
+
+Pamela is the platform's conversational voice agent, backed by the ElevenLabs text-to-speech API. She handles inbound and outbound call workflows: greeting callers, proposing appointment slots mid-call, booking appointments live, and dispatching outbound follow-up calls for the CRE, MedSpa, and FounderSignal campaigns.
+
+Pamela ships in two forms:
+
+- A **voice gateway** of REST endpoints that power speech synthesis, slot lookup, mid-call booking, post-call ingestion, and outbound dispatch. See the [voice endpoints reference](/api-reference/voice-endpoints).
+- A **web voice widget** mounted site-wide that lets visitors hear Pamela answer common questions directly in the browser.
+
+## Prerequisites
+
+- An ElevenLabs account with an API key.
+- Optionally, a specific ElevenLabs voice ID to use for Pamela.
+
+## Configuration
+
+Pamela reads two environment variables:
+
+```bash
+# Required for all speech synthesis
+ELEVENLABS_API_KEY=
+
+# Optional: override the voice used for Pamela
+ELEVENLABS_VOICE_ID_PAMELA=
+```
+
+- `ELEVENLABS_API_KEY` is required. If it is unset, `POST /api/voice/tts` returns HTTP `500` with the error `ELEVENLABS_API_KEY is not configured in environment.`
+- `ELEVENLABS_VOICE_ID_PAMELA` is optional. When unset, Pamela falls back to a built-in default voice. A `voiceId` passed in the request body takes precedence over both.
+
+Speech synthesis defaults to the `eleven_multilingual_v2` model and `mp3_44100_128` output format. Callers can override the model per request with the `modelId` body parameter.
+
+## What Pamela does on a call
+
+1. **Proposes slots.** Mid-call, the agent fetches open diagnostic slots from `GET /api/voice/slots` and offers them to the caller.
+2. **Books live.** When the caller picks a slot, `POST /api/voice/book` confirms the appointment and returns a booking reference. Each booking is written to the security audit log.
+3. **Reports back.** After the call ends, the telephony provider posts the transcript, sentiment, disposition, and recording URL to `POST /api/voice/webhook`, which logs the call into the Results Vault and CRM.
+4. **Dials out.** `POST /api/voice/dispatch` queues an outbound call with a campaign-specific script for CRE, MedSpa, or FounderSignal leads.
+
+## Web voice widget
+
+The Pamela web voice widget is mounted on every page through the shared page layout. It renders a floating "Talk to Pamela" button in the bottom-right corner of the site.
+
+When a visitor opens the widget, they can choose from a set of canonical questions, such as "What is the 15-Minute Diagnostic?" or "How do I schedule a session with Robert?" The widget sends the scripted answer to `POST /api/voice/tts` and plays the returned MP3 audio in the browser.
+
+The widget is zero-cost to operate on the client side. Audio is synthesized on demand by the server, so the only usage cost is the ElevenLabs API calls behind `POST /api/voice/tts`.
+
+## Voicemail greeting generator
+
+The repository includes a script, `scripts/generate-pamela-voicemail.mjs`, that synthesizes Pamela's Google Voice voicemail greeting as an MP3. Run it with your ElevenLabs credentials in `.env.local`:
+
+```bash
+node scripts/generate-pamela-voicemail.mjs
+```
+
+The script writes the greeting to `client/public/audio/pamela-google-voice-greeting.mp3` so the site can serve it, plus a copy at the repository root. Upload the MP3 to Google Voice as the voicemail greeting.
+
+<Tip>
+  To change Pamela's voice everywhere at once, set `ELEVENLABS_VOICE_ID_PAMELA` and regenerate the voicemail greeting so the phone greeting matches the web widget.
+</Tip>
