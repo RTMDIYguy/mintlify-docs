@@ -1,0 +1,106 @@
+---
+title: 'Runs'
+description: 'List workflow runs, fetch full execution details, and approve or reject runs paused for operator approval.'
+---
+
+The Runs API exposes workflow execution state: run history, step-by-step traces with tool telemetry, produced artifacts, and the operator approval gate. It backs the [Run Inspector](/workflows/results-vault#inspect-a-run) in the Dashboard, Auditing, and Command Center pages.
+
+All endpoints are scoped to the authenticated workspace. Requests without a workspace return HTTP `401`.
+
+## List runs
+
+```http
+GET /api/runs
+```
+
+Returns the 50 most recent workflow runs for the workspace, newest first.
+
+```json
+{
+  "runs": [
+    {
+      "id": "1f2d3c4b-...",
+      "workflowId": "9a8b7c6d-...",
+      "status": "completed",
+      "triggerSource": "manual",
+      "createdAt": "2026-09-05T14:02:11.000Z"
+    }
+  ]
+}
+```
+
+Run `status` values include `pending`, `running`, `paused_for_approval`, `completed`, and `failed`.
+
+## Get run details
+
+```http
+GET /api/runs/:runId
+```
+
+Returns the full execution record for one run:
+
+- `run`: the run row, including status, trigger source, and initial context.
+- `workflow`: metadata for the workflow the run belongs to.
+- `steps`: every run step in execution order, enriched with the step title, step type, action prompt, assigned agent name and role, the tools executed, and the count of artifacts each step created.
+- `artifacts`: all artifacts the run produced.
+- `totalToolsCount`, `totalCost`, `totalLatencyMs`: aggregate telemetry across all steps.
+
+```bash
+curl https://your-instance/api/runs/1f2d3c4b-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+```
+
+Returns HTTP `404` if the run does not exist in the workspace.
+
+## Approve a paused run
+
+```http
+POST /api/runs/:runId/approve
+```
+
+Resumes a run that is waiting at an approval gate. The run must be in status `paused_for_approval`; approving sets it back to `pending` and immediately resumes queue processing.
+
+```json
+{ "message": "Run approved and resumed" }
+```
+
+Returns HTTP `400` with `"Run is not pending approval"` if the run is in any other status, and `404` if the run is not found.
+
+## Reject a paused run
+
+```http
+POST /api/runs/:runId/reject
+```
+
+Ends a run that is waiting at an approval gate. The run must be in status `paused_for_approval`; rejecting marks it `failed` with the error message `Rejected by user` and records the completion time.
+
+```json
+{ "message": "Run rejected" }
+```
+
+Returns HTTP `400` if the run is not pending approval, and `404` if the run is not found.
+
+## Get run artifacts
+
+```http
+GET /api/runs/:runId/artifacts
+```
+
+Returns all artifacts produced by one run, oldest first:
+
+```json
+{
+  "runId": "1f2d3c4b-...",
+  "artifacts": [
+    {
+      "id": "7e8f9a0b-...",
+      "artifactType": "post",
+      "title": "LinkedIn launch announcement",
+      "status": "draft",
+      "qualityScore": 92,
+      "qualityGrade": "A"
+    }
+  ]
+}
+```
+
+For artifact fields, downloads, and the quality loop, see the [Artifacts API](/api-reference/artifacts).
