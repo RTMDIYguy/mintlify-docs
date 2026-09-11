@@ -74,6 +74,12 @@
             "pages": [
               "workflows/founder-signal-system"
             ]
+          },
+          {
+            "group": "Swarm operations",
+            "pages": [
+              "agents/managing-agents"
+            ]
           }
         ]
       },

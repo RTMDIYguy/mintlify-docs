@@ -1,0 +1,120 @@
+---
+title: "Swarm agents API"
+description: "List workspace agents, deploy a new agent to the swarm, and pause or resume an agent by ID."
+---
+
+The swarm agents API backs the [Agents page](/agents/managing-agents). Use these endpoints to read live agent state or manage agents programmatically instead of through the UI.
+
+All endpoints are scoped to the authenticated workspace.
+
+## List agents
+
+```http
+GET /api/agents
+```
+
+Returns every agent registered to the workspace.
+
+**Response** `200`:
+
+```json
+{
+  "workspaceId": "ws_123",
+  "agents": [
+    {
+      "id": "agt_alpha_01",
+      "name": "Alpha-Node-01",
+      "role": "Lead Enrichment Specialist",
+      "status": "active",
+      "tasksCompleted": 1420,
+      "uptime": "99.9%",
+      "baseModel": "gemini-1.5-pro"
+    }
+  ],
+  "totalCount": 1
+}
+```
+
+Each agent's `status` is one of `active`, `idle`, `paused`, or `error`.
+
+Returns `500` with `{ "error": "Failed to fetch agents." }` if the lookup fails.
+
+## Deploy an agent
+
+```http
+POST /api/agents/deploy
+```
+
+Adds a new agent to the swarm. The agent starts with status `active`, zero completed tasks, and 100% uptime.
+
+**Request body**:
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `name` | string | Yes | Codename for the agent, for example `Inbound-SDR-Node-03`. |
+| `role` | string | Yes | The agent's specialization, for example `Lead Enrichment Specialist`. |
+| `baseModel` | string | No | LLM the agent runs on. Defaults to `gemini-2.5-flash`. |
+
+**Example**:
+
+```bash
+curl -X POST https://your-app-domain/api/agents/deploy \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Inbound-SDR-Node-03",
+    "role": "Founder Outreach Matrix Copywriter",
+    "baseModel": "claude-3-7-sonnet"
+  }'
+```
+
+**Response** `201`:
+
+```json
+{
+  "success": true,
+  "agent": {
+    "id": "agt_mf9k2x1a",
+    "name": "Inbound-SDR-Node-03",
+    "role": "Founder Outreach Matrix Copywriter",
+    "status": "active",
+    "tasksCompleted": 0,
+    "uptime": "100%",
+    "baseModel": "claude-3-7-sonnet"
+  }
+}
+```
+
+Returns `400` with `{ "error": "Agent name and role are required." }` when `name` or `role` is missing.
+
+## Pause or resume an agent
+
+```http
+POST /api/agents/:id/toggle
+```
+
+Flips the agent's status. An `active` agent becomes `paused`; a `paused` agent becomes `active`. Toggling does not delete the agent or reset its task count.
+
+**Example**:
+
+```bash
+curl -X POST https://your-app-domain/api/agents/agt_alpha_01/toggle
+```
+
+**Response** `200`:
+
+```json
+{
+  "success": true,
+  "agent": {
+    "id": "agt_alpha_01",
+    "name": "Alpha-Node-01",
+    "role": "Lead Enrichment Specialist",
+    "status": "paused",
+    "tasksCompleted": 1420,
+    "uptime": "99.9%",
+    "baseModel": "gemini-1.5-pro"
+  }
+}
+```
+
+Returns `404` with `{ "error": "Agent with id <id> not found." }` when no agent matches the ID.
