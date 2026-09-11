@@ -16,7 +16,7 @@ Use the chat endpoint when you want the Ops Agent to design a workflow from a pl
 
 The Ops Agent modal is no longer a synthesis-only assistant. When the orchestrator returns a workflow proposal, the modal renders it as an actionable DAG plan card with an execution steps checklist and an **Approve & Execute DAG in OS** button.
 
-Clicking the button sends the proposal to `POST /api/orchestrator/execute`. The modal then:
+When you click the button, the modal sends the proposal to `POST /api/orchestrator/execute`. The modal then:
 
 - Shows execution progress while the DAG swarm runs.
 - Marks the plan card as **Executed in OS** with the returned run ID on success.
@@ -185,5 +185,5 @@ Every run produces tangible deliverables in the Artifact Vault. Each artifact ca
 
 The deliverables depend on the workflow domain:
 
-- **Founder Signal System runs.** Workflows named after the Founder Signal System, attributed to the Marketing department, or containing ICP or content steps generate four marketing deliverables: an ICP and core pain signal brief, a core message map with value pillars, an authority content batch of three LinkedIn post drafts targeted for syndication, and a proof loop and traction tracking plan. See [Founder Signal System](/workflows/founder-signal-system) for how these deliverables fit the package.
+- **Founder Signal System runs.** Workflows named after the Founder Signal System, attributed to the Marketing department, or containing ICP or content steps generate four marketing deliverables. The deliverables are an ICP and core pain signal brief, a core message map with value pillars, an authority content batch of three LinkedIn post drafts targeted for syndication, and a proof loop and traction tracking plan. See [Founder Signal System](/workflows/founder-signal-system) for how these deliverables fit the package.
 - **All other runs.** The orchestrator generates one consolidated artifact documenting each executed DAG step and an operational summary.
