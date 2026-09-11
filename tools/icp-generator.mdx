@@ -1,0 +1,66 @@
+---
+title: "ICP Generator"
+description: "Synthesize, save, and manage Ideal Customer Profile dossiers with AI, backed by a persistent profile library."
+---
+
+The ICP Generator builds a complete Ideal Customer Profile dossier from a short description of a business and its offering. Each dossier includes the target role, company size, revenue range, acute pain triggers, buying signals, disqualifiers, a value proposition, and ready-to-use outreach angles. Generated profiles are saved to a persistent library so you can reuse them across campaigns.
+
+Use the ICP Generator when you are:
+
+- Defining who a new offer is for before writing content or outreach.
+- Running the ICP and fit-focus step of the [Founder Signal System](/workflows/founder-signal-system).
+- Building a library of segment-specific profiles to drive prospect list building and message maps.
+
+## Open the tool
+
+The ICP Generator is available at `/icp-generator`. You can reach it from:
+
+- The **Tools & Resources** menu in the top navigation.
+- The **Tools** section of the footer.
+- The dashboard tool cards.
+
+## Generate a profile
+
+1. Open the ICP Generator.
+2. Fill in the intake fields:
+   - **Business or client name**, for example `Acme Legal Consulting`.
+   - **Core offering**, for example `Nevada CRE Intelligence / Fractional COO`.
+   - **Target industry**, for example `Commercial Real Estate, MedSpas, Logistics`.
+   - **Target persona**, for example `Managing Director / Clinic Owner / CFO`.
+   - **Primary revenue objective**, for example `$5k/mo Retainers, Enterprise Pipeline`.
+3. Generate the profile. The AI synthesizes a full dossier and saves it to your library by default.
+
+Each generated dossier contains:
+
+| Field | Description |
+| :--- | :--- |
+| Name | Concise title for the profile, for example `Scaling B2B Agency Founders ($1M-$3M)` |
+| Industry | Target industry |
+| Target role | Job title of the economic buyer |
+| Company size | Ideal headcount range |
+| Revenue range | Annual revenue qualification |
+| Acute pain triggers | 3 to 5 urgent operational or revenue problems the buyer experiences |
+| Buying signals | 3 to 5 observable triggers that indicate readiness to buy |
+| Disqualifiers | Firmographic or behavioral red flags that make a prospect a bad fit |
+| Value proposition | Positioning statement highlighting wedge equity and measurable ROI |
+| Outreach angles | Punchy hooks for LinkedIn outreach, email sequences, or roundtables |
+
+## Manage the profile library
+
+The library lists every saved profile, newest first, and can be filtered by industry. It ships pre-seeded with three baseline profiles the first time it loads: Nevada industrial CRE brokers, independent MedSpa owners, and founder-led B2B agencies.
+
+From the library you can:
+
+- Review any saved dossier in full.
+- Save a manually written profile alongside AI-generated ones.
+- Delete profiles you no longer need.
+
+Profiles are stored in Postgres and scoped to your workspace. Profiles without a workspace are visible globally.
+
+## Requirements
+
+AI generation requires the `GOOGLE_GENERATIVE_AI_API_KEY` environment variable. If the key is not configured, generation requests fail with HTTP `503` while the library, manual saves, and deletes continue to work.
+
+## Automate with the API
+
+Every action in the tool is also available over HTTP. See the [ICP API reference](/api-reference/icp-api) for endpoint details and examples.

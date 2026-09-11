@@ -1,0 +1,135 @@
+---
+title: "ICP API"
+description: "List, generate, save, and delete Ideal Customer Profile dossiers, including AI synthesis with Gemini and a workspace-scoped profile library."
+---
+
+## Overview
+
+The ICP API backs the [ICP Generator](/tools/icp-generator). It manages a Postgres-backed library of Ideal Customer Profile dossiers and exposes AI synthesis of new profiles.
+
+All endpoints live under `/api`. Responses are JSON with a `success` boolean. Errors return `success: false` and an `error` message with HTTP `400` (validation), `503` (missing AI key), or `500` (server error).
+
+Profiles are scoped by `workspaceId`. Records with no `workspaceId` are global and visible to every workspace.
+
+## List ICP profiles
+
+```http
+GET /api/icp/profiles
+```
+
+Returns profiles ordered by creation date, newest first. The first call seeds the library with three baseline profiles if the table is empty.
+
+Query parameters:
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `industry` | string | Filter by industry. Pass `all` or omit to include every industry. |
+| `workspaceId` | string | Limit results to global profiles plus profiles in this workspace. |
+
+```bash
+curl "https://your-domain.com/api/icp/profiles?industry=Commercial%20Real%20Estate"
+```
+
+Response (`200`):
+
+```json
+{
+  "success": true,
+  "count": 1,
+  "profiles": [
+    {
+      "id": "9c1d2b3a-...",
+      "name": "Nevada Industrial CRE Brokers",
+      "industry": "Commercial Real Estate",
+      "targetRole": "Managing Director / Principal Broker",
+      "companySize": "10-50 employees",
+      "revenueRange": "$2M - $10M GCI",
+      "acutePainTriggers": ["..."],
+      "buyingSignals": ["..."],
+      "disqualifiers": ["..."],
+      "valueProposition": "...",
+      "outreachAngles": ["..."],
+      "source": "system"
+    }
+  ]
+}
+```
+
+## Generate an ICP profile with AI
+
+```http
+POST /api/icp/generate
+```
+
+Synthesizes a complete ICP dossier with Gemini. Requires the `GOOGLE_GENERATIVE_AI_API_KEY` environment variable; if it is not set, the endpoint returns `503`.
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `businessName` | string | No | Business or client the ICP is for. |
+| `offering` | string | No | Core offering or service. |
+| `industry` | string | No | Target industry. Defaults to `Professional Services`. |
+| `targetAudience` | string | No | Target persona. Defaults to `Founder / CEO`. |
+| `primaryGoal` | string | No | Primary revenue objective. |
+| `saveToDb` | boolean | No | Persist the generated profile to the library. Defaults to `true`. |
+| `workspaceId` | string | No | Workspace to scope the profile to. |
+
+```bash
+curl -X POST "https://your-domain.com/api/icp/generate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Acme Legal Consulting",
+    "offering": "Fractional COO services",
+    "industry": "Legal Services",
+    "targetAudience": "Managing Partner",
+    "primaryGoal": "$5k/mo retainers"
+  }'
+```
+
+Returns `200` with the profile in `profile`. If `saveToDb` is `true`, the response contains the saved database record with `source: "ai_synthesized"`; otherwise it contains the raw generated dossier. The endpoint tries `gemini-2.5-flash` first and falls back to `gemini-1.5-flash`, then `gemini-1.5-pro`.
+
+## Create an ICP profile
+
+```http
+POST /api/icp/profiles
+```
+
+Saves a manually written profile. Requires `name`, `industry`, `targetRole`, and `valueProposition`; missing fields return `400`.
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `name` | string | Yes | Profile title. |
+| `industry` | string | Yes | Target industry. |
+| `targetRole` | string | Yes | Job title of the economic buyer. |
+| `valueProposition` | string | Yes | Positioning statement. |
+| `companySize` | string | No | Defaults to `10-50`. |
+| `revenueRange` | string | No | Defaults to `$1M-$5M`. |
+| `acutePainTriggers` | string[] | No | Urgent problems the buyer experiences. Defaults to `[]`. |
+| `buyingSignals` | string[] | No | Observable readiness triggers. Defaults to `[]`. |
+| `disqualifiers` | string[] | No | Red flags that make a prospect a bad fit. Defaults to `[]`. |
+| `outreachAngles` | string[] | No | Hooks for outreach messaging. Defaults to `[]`. |
+| `workspaceId` | string | No | Workspace to scope the profile to. |
+
+```bash
+curl -X POST "https://your-domain.com/api/icp/profiles" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Boutique Law Firm Partners",
+    "industry": "Legal Services",
+    "targetRole": "Managing Partner",
+    "valueProposition": "Systemize intake and follow-up so partners bill more hours."
+  }'
+```
+
+Returns `201` with the created record in `profile` and `source: "manual"`.
+
+## Delete an ICP profile
+
+```http
+DELETE /api/icp/profiles/:id
+```
+
+Deletes the profile with the given ID. Returns `200` with a confirmation message.
+
+```bash
+curl -X DELETE "https://your-domain.com/api/icp/profiles/9c1d2b3a-..."
+```

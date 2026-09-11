@@ -112,6 +112,13 @@
             "pages": [
               "voice/pamela-voice-agent"
             ]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "tools/icp-generator",
+              "tools/assessment-question-generator"
+            ]
           }
         ]
       },
@@ -187,6 +194,13 @@
             "group": "Voice agent",
             "pages": [
               "api-reference/voice-endpoints"
+            ]
+          },
+          {
+            "group": "GTM tools",
+            "pages": [
+              "api-reference/icp-api",
+              "api-reference/assessment-api"
             ]
           }
         ]

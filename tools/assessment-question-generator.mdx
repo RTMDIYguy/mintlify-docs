@@ -1,0 +1,62 @@
+---
+title: "Assessment Question Generator"
+description: "Build a Postgres-backed bank of consulting diagnostic questions, generate new ones with AI, and save discovery sessions."
+---
+
+The Assessment Question Generator maintains a persistent bank of high-signal consulting questions for discovery and diagnostic calls. Every question pairs the exact wording to ask with the skill it tests, what to listen for in the answer, and the keyword signals that indicate the question is relevant. You can add your own questions, generate new ones with AI, and save completed sessions with call notes and findings.
+
+Use the Assessment Question Generator when you are:
+
+- Preparing a discovery or diagnostic call with a founder or client.
+- Running the diagnostic and segmentation step of the [Founder Signal System](/workflows/founder-signal-system).
+- Capturing call notes and detected signals so findings feed the next engagement.
+
+## Open the tool
+
+The Assessment Question Generator is available at `/assessment-generator`. You can reach it from:
+
+- The **Tools & Resources** menu in the top navigation.
+- The **Tools** section of the footer.
+- The dashboard tool cards.
+
+## The question bank
+
+The bank ships pre-seeded with 18 system questions the first time it loads: three questions at each depth across six domains.
+
+Questions are organized on two axes:
+
+| Axis | Values |
+| :--- | :--- |
+| Domain | `Operations`, `Sales`, `Marketing`, `Finance`, `Technology`, `Leadership` |
+| Depth | `exploratory`, `diagnostic`, `executive` |
+
+Each question record includes:
+
+- **Text**: the verbatim question to ask.
+- **Skill**: the consulting assessment skill it exercises, for example `Bottleneck Identification`.
+- **Evaluation**: what to listen for in the answer, including red flags and structural gaps.
+- **Signals**: keywords to detect in call notes, for example `delay`, `handoff`, `manual`.
+- **Source**: `system` for seeded questions, `manual` for ones you write, `ai_synthesized` for AI-generated ones.
+
+Filter the bank by domain and depth to build a question set for a specific call. You can also write custom questions and save them to the database, or delete questions you no longer use.
+
+## Generate questions with AI
+
+Instead of writing questions by hand, generate a batch for a specific domain, focus area, and industry. The AI synthesizes new questions in the same structure as the seed bank and persists them with the `ai_synthesized` source so you can tell them apart from system and manual questions.
+
+AI generation requires the `GOOGLE_GENERATIVE_AI_API_KEY` environment variable. If the key is not configured, generation requests fail with HTTP `503` while the rest of the tool continues to work.
+
+## Save an assessment session
+
+After a call, save the session to record what happened:
+
+1. Set the **client name** and **domain** in the session parameters.
+2. Paste or type your **call notes**. Call notes are required.
+3. The tool detects signal keywords in the notes and surfaces findings.
+4. Select the questions you used, then choose **Save Session**.
+
+Saved sessions store the client name, domain, call notes, detected signals, findings, and selected question IDs in Postgres, scoped to your workspace.
+
+## Automate with the API
+
+Every action in the tool is also available over HTTP. See the [Assessment API reference](/api-reference/assessment-api) for endpoint details and examples.
