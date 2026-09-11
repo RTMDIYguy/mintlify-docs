@@ -62,6 +62,12 @@
             ]
           },
           {
+            "group": "Marketplace",
+            "pages": [
+              "marketplace/overview"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
