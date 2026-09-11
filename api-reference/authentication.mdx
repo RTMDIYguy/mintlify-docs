@@ -1,0 +1,162 @@
+---
+title: 'Authentication'
+description: 'Sign up, sign in, and manage sessions with the native Agent Lab authentication endpoints, including seamless first-login account provisioning.'
+---
+
+## Overview
+
+Agent Lab ships native authentication endpoints for email/password sign-up and sign-in, Google sign-in, session lookup, and logout. Successful authentication sets a session cookie that stays valid for one year. Sign-up, login, and Google sign-in responses also return the session token in the response body, so clients can fall back to sending it as a `Bearer` token in the `Authorization` header when cookies are unavailable.
+
+Every new account gets its own personal workspace. Agent Lab creates the workspace automatically and assigns the user the `owner` role in it. This happens on sign-up, on first Google sign-in, and on first email login (see [First-login auto-provisioning](#first-login-auto-provisioning)).
+
+## Endpoints
+
+| Method | Path | Purpose |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/signup` | Create an account with email and password |
+| `POST` | `/api/auth/login` | Sign in with email and password |
+| `POST` | `/api/auth/google` | Sign in or sign up with Google |
+| `GET` | `/api/auth/me` | Return the current session's user |
+| `POST` | `/api/auth/logout` | End the current session |
+
+## Sign up
+
+`POST /api/auth/signup` creates a new account, provisions a personal workspace, and starts a session.
+
+Request body:
+
+- `email` (required): a valid email address.
+- `password` (required): at least 6 characters.
+- `name` (optional): display name. Defaults to the part of the email before the `@`.
+
+```bash
+curl -X POST https://your-app-domain/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "ada@example.com", "password": "hunter22", "name": "Ada"}'
+```
+
+A successful response returns `200` with the new user and sets the session cookie:
+
+```json
+{
+  "success": true,
+  "token": "<session-token>",
+  "user": {
+    "id": "…",
+    "openId": "usr_…",
+    "email": "ada@example.com",
+    "name": "Ada",
+    "role": "owner",
+    "workspaceId": "…",
+    "loginMethod": "email"
+  }
+}
+```
+
+Error responses:
+
+- `400` if the email is missing or invalid.
+- `400` if the password is shorter than 6 characters.
+- `400` if an account with that email already exists. Sign in instead.
+
+## Log in
+
+`POST /api/auth/login` signs in with email and password and starts a session.
+
+Request body:
+
+- `email` (required)
+- `password` (required)
+
+```bash
+curl -X POST https://your-app-domain/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "ada@example.com", "password": "hunter22"}'
+```
+
+A successful response returns `200` with the same `user` shape as sign-up. Missing fields return `400`.
+
+### First-login auto-provisioning
+
+Logging in with an email that has no account does not fail. Instead of returning an "account not found" error, Agent Lab auto-provisions the account on the spot:
+
+1. Creates a new user record with the `email` login method.
+2. Creates a personal workspace named after the user (for example, "Ada's Workspace").
+3. Assigns the user the `owner` role in that workspace.
+4. Starts a session and returns the new user in the response.
+
+The result is the same as signing up first and then logging in. Users can skip the sign-up form entirely and go straight to the login page.
+
+<Note>
+  Agent Lab derives the display name for an auto-provisioned account from the
+  email address. For example, `ada.lovelace@example.com` becomes "Ada Lovelace". Users
+  can pass an explicit `name` through [sign-up](#sign-up) instead if they want
+  full control over it.
+</Note>
+
+## Google sign-in
+
+`POST /api/auth/google` signs in with a Google account. If no account exists for the email, Agent Lab provisions one the same way as first-login auto-provisioning, with the `google` login method.
+
+Request body:
+
+- `email` (required): the Google account email.
+- `name` (optional): display name. Defaults to the part of the email before the `@`.
+
+```bash
+curl -X POST https://your-app-domain/api/auth/google \
+  -H "Content-Type: application/json" \
+  -d '{"email": "ada@example.com", "name": "Ada"}'
+```
+
+Returns `200` with the same `token` and `user` shape as sign-up and sets the session cookie.
+
+## Get the current user
+
+`GET /api/auth/me` returns the user for the active session. Use it to restore the signed-in state on page load.
+
+```bash
+curl https://your-app-domain/api/auth/me \
+  -H "Authorization: Bearer <session-token>"
+```
+
+The endpoint always returns `200`:
+
+- With a valid session, the response contains the `user` object.
+- Without a session, or with an invalid or expired token, the response is `{ "user": null }`.
+
+## Log out
+
+`POST /api/auth/logout` clears the session cookie and ends the session.
+
+```bash
+curl -X POST https://your-app-domain/api/auth/logout
+```
+
+Returns `200` with `{ "success": true }`.
+
+## Sessions
+
+- Sessions last one year from sign-up or sign-in.
+- Agent Lab delivers the session token as an HTTP cookie and also accepts it as a `Bearer` token in the `Authorization` header.
+- Signing in again refreshes the user's last-signed-in timestamp.
+
+### Session cookie behavior
+
+Agent Lab adapts the session cookie to the connection:
+
+- Over HTTPS, Agent Lab sets the cookie with `Secure` and `SameSite=None`, so cross-site embeds keep working.
+- Over plain HTTP, such as `localhost` during local development, Agent Lab sets `SameSite=Lax` without `Secure`. Browsers reject `Secure` cookies on insecure connections, so this fallback keeps sessions working locally.
+
+The cookie is always `HttpOnly` and scoped to the whole site.
+
+### Bearer token fallback
+
+Sign-up, login, and Google sign-in responses include the session token as a top-level `token` field. Store it and send it in the `Authorization` header when cookies are unavailable, for example in embedded webviews or scripted API calls:
+
+```bash
+curl https://your-app-domain/api/auth/me \
+  -H "Authorization: Bearer <token-from-login-response>"
+```
+
+The cookie and the bearer token carry the same session. You only need one of them per request.

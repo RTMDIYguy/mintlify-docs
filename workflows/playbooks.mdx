@@ -1,0 +1,73 @@
+---
+title: "Cross-department operating playbooks"
+description: "How the governed playbook layer connects workflow kits across departments with explicit handoff contracts, owners, fallbacks, and evidence requirements."
+---
+
+The workflow catalog describes individual department procedures. The playbook layer describes how those procedures cooperate across department boundaries. A playbook is a governed journey that chains existing workflows (referenced by their stable `XXX-NN` codes, such as `MKT-01` or `SAL-01`) into an end-to-end operating contract.
+
+The playbook layer does not replace the workflow registry, department packages, or client-facing workflow kits. Existing workflow IDs stay unchanged. Playbooks sit on top of them and make the transitions between owners explicit.
+
+## What a playbook defines
+
+Every playbook carries the same governed contract:
+
+- **Trigger and completion criteria**: the event that starts the journey and the observable state that ends it.
+- **Required inputs and expected outputs**: the data the journey needs and the artifacts it must produce.
+- **Primary owner and approval owner**: who runs the journey and who signs off.
+- **Handoff contracts**: the ordered transitions between workflows (see below).
+- **Stop conditions**: states where the journey must halt, such as a lead opting out or a missing payment term.
+- **Evidence requirements**: the records that must exist to prove the journey ran correctly.
+
+## The five canonical playbooks
+
+The initial layer seeds five high-value journeys covering the revenue spine, finance controls, client continuity, and the feedback loop into marketing.
+
+| Playbook ID | Name | Owning department | What it does |
+| --- | --- | --- | --- |
+| `revenue-lead-to-sale` | Revenue Spine: Lead to Sale | Marketing | Moves qualified demand from content, outreach, events, and assessments into a governed sales opportunity. |
+| `sale-to-delivery` | Revenue Spine: Sale to Delivery | Sales | Converts an executed agreement into an owned, funded, and ready-to-run delivery engagement. |
+| `delivery-to-retention` | Revenue Spine: Delivery to Retention | Fulfillment | Turns delivery health, support outcomes, and measured value into aftercare and renewal signals. |
+| `finance-control-loop` | Finance Control Loop | Finance | Connects pricing, invoicing, payment status, accounting review, and commercial escalation. |
+| `proof-and-referral-loop` | Proof and Referral Loop | Fulfillment | Returns validated delivery outcomes and aftercare signals to marketing for proof, referrals, and future demand. |
+
+Department-only playbooks can be added later without changing the handoff model.
+
+## Handoff contracts
+
+A handoff contract is the unit that governs each transition inside a playbook. Each handoff records:
+
+- **From and to workflow codes**: for example, `MKT-01` hands off to `SAL-01`.
+- **From and to department codes**: makes cross-department boundaries explicit.
+- **Trigger signal**: the condition that fires the handoff, such as "Lead is confirmed as MQL and ready for a commercial conversation."
+- **Required payload**: the fields the receiving owner must get, such as lead identity, fit evidence, offer interest, and next action.
+- **Receiving owner**: the person accountable for accepting the handoff.
+- **Approval requirement**: whether the handoff needs sign-off before it proceeds.
+- **Fallback protocol**: the manual path when an integration or automation is unavailable.
+- **Stop condition**: when the handoff must not proceed, such as a rejected fit or missing required fields.
+- **Evidence requirements**: the records that prove the handoff happened.
+
+The fallback protocol is mandatory. A playbook must remain operable when an integration, paid tool, or automation endpoint is unavailable. The receiving owner must still be able to accept the handoff manually and preserve evidence.
+
+## How playbooks relate to workflow kits
+
+- The [workflow kit catalog](/workflows/overview) packages individual workflows as self-contained kits, one per `XXX-NN` code.
+- Playbooks reference those same codes in their handoffs, so `MKT-06` in a playbook means the same Content Creation workflow as the `MKT-06` kit.
+- Kits answer "how do I run this workflow?" Playbooks answer "what happens next, who receives it, and what must travel with it?"
+
+Reference workflows by their stable IDs in handoffs, commit messages, and change control entries, exactly as the catalog does.
+
+## Viewing and seeding playbooks
+
+The app exposes playbooks in two ways:
+
+- The **Playbooks** page in the app UI lists the seeded journeys with their handoffs.
+- The API serves them at `GET /api/playbooks` and `GET /api/playbooks/:id`. See [Playbooks endpoints](/api-reference/playbooks).
+
+Seed or refresh the canonical layer from the repository root:
+
+```bash
+pnpm db:push
+pnpm seed:playbooks
+```
+
+The seed script is idempotent. Re-running it upserts the five canonical playbooks by ID, marks them `active`, and rewrites their handoffs in order, so you can run it safely after pulling new playbook definitions.
