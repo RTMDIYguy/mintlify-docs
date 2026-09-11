@@ -31,11 +31,11 @@ The cards refresh from live telemetry. Approving or rejecting an action recalcul
 
 Each entry in the log records:
 
-- **Agent / source** — the agent that performed the action, or `System` for platform events.
-- **Action type and status** — one of `success`, `requires_approval`, `warning`, or `error`.
-- **Model telemetry** — the model used, latency in milliseconds, total tokens, and cost in dollars.
-- **Policy checks** — SAIF pass/fail, the number of PII items detected and redacted, and whether the budget threshold passed.
-- **Message and details** — a human-readable summary plus the structured action payload.
+- **Agent / source**: the agent that performed the action, or `System` for platform events.
+- **Action type and status**: one of `success`, `requires_approval`, `warning`, or `error`.
+- **Model telemetry**: the model used, latency in milliseconds, total tokens, and cost in dollars.
+- **Policy checks**: SAIF pass/fail, the number of PII items detected and redacted, and whether the budget threshold passed.
+- **Message and details**: a human-readable summary plus the structured action payload.
 
 ## Filtering and search
 
@@ -47,13 +47,13 @@ Events with status `requires_approval` show **Approve** and **Reject** buttons i
 
 1. Open the **Pending Approval** tab to see only items waiting for review.
 2. Read the event message and details to understand what the agent proposed.
-3. Select **Approve** to let the action proceed, or **Reject** to cancel it.
+3. Click **Approve** to let the action proceed, or **Reject** to cancel it.
 
 Agent Lab records the decision in the audit log and updates the **Pending Reviews** count.
 
 ## Exporting to CSV
 
-Select **Export Audit CSV** in the page header to download the audit log. The CSV includes one row per event with the log ID, timestamp, agent, action type, model, status, latency, token count, cost, SAIF pass/fail, PII redaction count, and message. The file downloads as `agentlab-audit-logs-<timestamp>.csv`.
+Click **Export Audit CSV** in the page header to download the audit log. The CSV includes one row per event with the log ID, timestamp, agent, action type, model, status, latency, token count, cost, SAIF pass/fail, PII redaction count, and message. The file downloads as `agentlab-audit-logs-<timestamp>.csv`.
 
 ## Programmatic access
 
