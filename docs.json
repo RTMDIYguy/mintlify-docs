@@ -14,9 +14,14 @@
         "tab": "Guides",
         "groups": [
           {
+            "group": "Overview",
+            "pages": [
+              "index"
+            ]
+          },
+          {
             "group": "Getting started",
             "pages": [
-              "index",
               "quickstart",
               "development"
             ]
@@ -38,11 +43,35 @@
             ]
           },
           {
+            "group": "Workflow packages",
+            "pages": [
+              "workflows/overview",
+              "workflows/playbooks"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
               "ai-tools/claude-code",
               "ai-tools/windsurf"
+            ]
+          },
+          {
+            "group": "Workflows",
+            "pages": [
+              "workflows/founder-signal-system"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Changelog",
+            "pages": [
+              "changelog/overview"
             ]
           }
         ]
@@ -63,6 +92,18 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Playbooks",
+            "pages": [
+              "api-reference/playbooks"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "api-reference/government-apis"
             ]
           }
         ]
@@ -120,7 +161,7 @@
       "linkedin": "https://linkedin.com/company/mintlify"
     }
   },
-  "description": "Agent Lab is a consulting agency to content creators transforming into an AI Native Agency.",
+  "description": "Predictive Opportunity Intelligence Dashboard. Predict federal business and contracting opportunities from public open data, synthesized by Gemini AI.",
   "appearance": {
     "default": "light"
   }

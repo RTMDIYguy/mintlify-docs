@@ -1,0 +1,64 @@
+---
+title: "Agent Lab changelog: weekly features, updates, and fixes"
+description: "Weekly updates on new Agent Lab features, improvements, and fixes, so you can track what shipped and how it affects your workflow."
+---
+
+## Week of September 11, 2026
+
+### Updates
+
+- **More thorough pre-release code review.** Every proposed change to the platform now runs through an automated multi-reviewer check before it can be merged. The check posts a synthesized review on each pull request, so issues get caught earlier and releases stay steady. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+
+## Week of September 7, 2026
+
+### New features
+
+- **Cross-department operating playbooks.** A new Playbooks page shows five governed journeys that connect department workflows end to end. The journeys cover lead to sale, sale to delivery, delivery to retention, finance controls, and the proof and referral loop. Each playbook spells out its trigger, completion definition, owners, approvals, handoffs between workflows, fallback and stop protocols, and evidence requirements. You can now see exactly how work moves across department boundaries and who is accountable at each step. Existing workflow IDs are unchanged. See [workflow packages](/workflows/overview) for how individual workflows are organized.
+
+### Updates
+
+- **Test framework upgrade.** The framework that runs the platform's automated test suite moved up a major version. The new release clears mocks between tests by default and fails tests that skip asynchronous assertions, so the suite catches regressions earlier and keeps releases reliable. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **TypeScript compiler upgrade.** The compiler that checks and builds the platform's code moved up two major versions to TypeScript 7, the new natively compiled release. You get faster builds and earlier detection of code issues before each release. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **Platform-wide library refresh.** More than 50 production libraries moved to their latest minor and patch releases. The refresh covers the interface components behind forms, dialogs, menus, tabs, and charts, plus AI, payments, file storage, and database connectivity. You get faster interactions, security fixes, and compatibility with the newest AI models and payment provider features. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **Package manager upgrade.** The tool that installs the platform's dependencies moved up two major versions. You get faster dependency resolution and more reliable builds behind the scenes. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **Node.js type definitions upgrade.** The Node.js type definitions used during development moved up two major versions. This keeps builds aligned with the newest Node.js APIs and catches more issues before release. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **Build tooling refresh.** The internal styling, bundling, and code formatting toolchain moved to its latest releases. You get more reliable production builds, security fixes, and small performance improvements behind the scenes. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+
+## Week of September 4, 2026
+
+### Updates
+
+- **New registered collaborator.** JoBeth McCarthy-Jean joined the public contact directory as a registered collaborator. You can find her contact details there if you need to reach her. Nothing about your account or workflow changes. See the [Quickstart](/quickstart) to get started.
+- **Updated contact information.** The email address for Chris, the Bootstrapper Capital / Community Director, changed in the public contact directory. Use the new address listed there if you need to reach Chris for community questions. Nothing else about your account or workflow changes. See the [Quickstart](/quickstart) to get started.
+
+## Week of August 22, 2026
+
+### Updates
+
+- **Payments library upgrade.** The library that powers marketplace checkout, subscription billing, and usage metering moved to its latest major release. You get more reliable payment processing and compatibility with the newest payment provider features. Nothing changes in how you subscribe to or pay for [workflow packages](/workflows/overview).
+- **Faster, safer ID generation.** The library that generates unique identifiers across the platform moved to its latest major release. You get improved performance and security hardening behind the scenes, with no change to how the app works day-to-day. See the [Quickstart](/quickstart) to get started.
+
+## Week of August 15, 2026
+
+### Updates
+
+- **Under-the-hood library upgrades.** Core libraries powering forms, dialogs, menus, tables, charts, and background data fetching moved to their latest patch and minor releases. You get faster interactions, smaller page downloads, and better compatibility with the latest React versions. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **Build tooling refresh.** The internal build and formatting toolchain moved to newer releases across styling, bundling, and code formatting. You get faster development builds and more reliable production output. Nothing about how the app looks or works day-to-day changes.
+
+## Week of August 8, 2026
+
+### Updates
+
+- **Broader automated QA coverage.** A new automated QA suite now exercises the flows you use most. Covered flows include sign up and log in, connecting and disconnecting accounts, the dashboard, calendar navigation, AI caption generation, saving drafts, scheduling posts, publishing, filtering, and deletion. End-to-end journeys also run before every release, including dashboard CTA to scheduled post, AI caption to scheduled post, and publish now to analytics. You get earlier regression detection on the paths that matter, with no change to how the app works day-to-day. See the [Quickstart](/quickstart) to get started.
+
+## Week of August 1, 2026
+
+### Updates
+
+- **More reliable releases.** A new end-to-end testing setup now seeds and tears down realistic data across the app before every release. You get faster iteration on the features you rely on — signups, subscriptions, blog, newsletter, contact forms, and checkout — with fewer regressions.
+- **Stronger security posture.** Automated code security scanning now runs on every change and on a regular schedule, so vulnerabilities are caught earlier. No action is required from you — the checks run behind the scenes to help keep your account and data safer.
+
+<Note>
+  Nothing about your account, data, or day-to-day workflow changes with this
+  update. See the [Quickstart](/quickstart) to get started.
+</Note>

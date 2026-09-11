@@ -1,154 +1,82 @@
 ---
-title: "Quickstart: run the dashboard locally and on Cloud Run"
-description: "Set up the Predictive Opportunity Intelligence Dashboard: install dependencies, configure Gemini and Firebase, run locally, and deploy to Google Cloud Run."
+title: "Quickstart: run Agent Lab locally"
+description: "Clone the Agent Lab repo, install with pnpm, start the dev server, and learn the repository layout, Drizzle setup, and change-control workflow."
 ---
 
-The Predictive Opportunity Intelligence Dashboard is a full-stack React + Express application that ingests federal and alternative data signals (SAM.gov, openFDA, ClinicalTrials.gov, USASpending.gov, arXiv, SEC EDGAR, USPTO) and synthesizes them into predictive intelligence using Google Gemini.
-
-This guide walks you through cloning the app, configuring credentials, running the dev server, producing a production build, and deploying to Google Cloud Run with GCP Secret Manager.
+Agent Lab is a React client and Express/tRPC server that hosts the Uncle Robert Consulting web app. It also carries the workflow packages, operating docs, and change-control materials that back the business. This page walks you from a fresh clone to a running dev server.
 
 ## Prerequisites
 
-- **Node.js 18+** or **Bun**
-- A **Google Gemini API key** (`GEMINI_API_KEY`) — obtain one from [Google AI Studio](https://aistudio.google.com/)
-- A [Firebase](https://console.firebase.google.com/) project (for Firestore persistence used by the entity knowledge graph and extraction studios)
-- *(Optional)* API keys for **openFDA**, **SAM.gov**, and **USPTO** to raise rate limits and unlock direct access
-- *(Optional, for deployment)* The [`gcloud` CLI](https://cloud.google.com/sdk/docs/install) authenticated against a Google Cloud project with **Cloud Run** and **Secret Manager** enabled
+- **Node.js** 20 or higher
+- **pnpm** installed globally (`npm i -g pnpm` if you do not already have it)
+- Access to the `agentlab` repository on GitHub
 
-## Step 1: Clone the repository
+## Get the app running
 
-```bash
-git clone https://github.com/rtmdiyguy/predictive-business-opportunity-app.git
-cd predictive-business-opportunity-app
-```
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/rtmdiyguy/agentlab.git
+    cd agentlab
+    ```
+  </Step>
+  <Step title="Install dependencies">
+    Agent Lab uses `pnpm` as its package manager.
 
-## Step 2: Install dependencies
+    ```bash
+    pnpm install
+    ```
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    pnpm dev
+    ```
 
-```bash
-npm install
-```
+    This runs the tRPC server with `tsx watch` and serves the Vite-powered React client. Open the URL printed in the terminal to see the app.
+  </Step>
+</Steps>
 
-<Tip>
-  You can substitute `bun install` if you prefer Bun. A `bun.lock` file is checked in alongside `package-lock.json`.
-</Tip>
+## Repository map
 
-## Step 3: Configure environment variables
+Knowing where things live makes navigation and PRs faster.
 
-Copy the example file and fill in your keys:
+| Path | Purpose |
+| --- | --- |
+| `src/` | React client application. |
+| `server/` | Express and tRPC server, plus backend modules. |
+| `docs/operations/` | Operating architecture, execution plans, change-control register, workflow registry, and handoff docs. |
+| `workflows/` | Imported workflow sources and client-facing workflow packages. |
+| `scripts/` | Repo utilities, including the change-control verifier. |
+| `content/` | CMS-managed site content. |
+| `drizzle/` | Database schema, generated SQL migrations, and Drizzle config. |
 
-```bash
-cp .env.example .env
-```
+The database layer is managed by [Drizzle ORM](https://orm.drizzle.team/). Schema lives in `drizzle/`, and `pnpm db:push` runs `drizzle-kit generate` followed by `drizzle-kit migrate` to apply changes.
 
-At a minimum, set `GEMINI_API_KEY`. `APP_URL` is auto-injected when running on Cloud Run, but you can set it manually for local testing. The Express server also honors `PORT` (default `3000`), which Cloud Run sets automatically.
+## Change control
 
-```env .env
-# Required — used by the server-side Gemini proxy
-GEMINI_API_KEY="your-gemini-api-key"
+Before shipping meaningful changes to any of the following, log the change in `docs/operations/change-control-register.md`:
 
-# URL where this instance is reachable. Defaults to http://localhost:3000 locally.
-APP_URL="http://localhost:3000"
+- workflow packages under `workflows/`
+- operating docs under `docs/operations/`
+- agent prompts
+- tracker schemas
+- kit manifests
 
-# Optional — override the port the Express server listens on. Defaults to 3000.
-PORT=3000
-
-# Optional — raises rate limits on the corresponding federal APIs
-USPTO_API_KEY=
-SAM_GOV_API_KEY=
-OPENFDA_API_KEY=
-SEC_EDGAR_USER_AGENT=
-```
-
-<Warning>
-  All third-party credentials live **server-side only**. The browser never receives them directly. Instead, the client calls proxy endpoints like `/api/analyze`, `/api/scrape/url`, `/api/scrape/linkedin`, and `/api/ingest/live`, and the server talks to Gemini and external data sources on your behalf. Never expose `GEMINI_API_KEY` to client code.
-</Warning>
-
-### Firebase configuration
-
-The app persists the canonical entity dictionary, the knowledge graph, and NER training data in Firestore. `src/lib/firebase.ts` reads Firebase settings from `firebase-applet-config.json` at the repo root. Populate this file with your own project values before running the app:
-
-```json firebase-applet-config.json
-{
-  "projectId": "your-firebase-project-id",
-  "appId": "your-web-app-id",
-  "apiKey": "your-web-api-key",
-  "authDomain": "your-project.firebaseapp.com",
-  "firestoreDatabaseId": "(default)",
-  "storageBucket": "your-project.firebasestorage.app",
-  "messagingSenderId": "your-sender-id",
-  "measurementId": "",
-  "oAuthClientId": "",
-  "recaptchaSiteKey": ""
-}
-```
-
-<Note>
-  These identifiers are public-facing Firebase Web SDK values, not secrets. Real secrets (Gemini, scraper tokens) still belong in `.env` locally or in Secret Manager in production. Publish read/write rules for your Firestore instance via `firestore.rules` before opening the app to real users.
-</Note>
-
-## Step 4: Start the development server
+Then validate the register:
 
 ```bash
-npm run dev
+pnpm change-control:check
 ```
 
-The script runs `tsx server.ts`, which starts the Express server with Vite middleware for hot-reloaded React. Open [http://localhost:3000](http://localhost:3000) to load the dashboard.
-
-You should see:
-
-- The **Signal Sandbox** populated with sample federal signals
-- The **Entity Extraction Studio** and **API Developer Studio** panels
-- Live scraper log output when you trigger a scrape from the UI
-
-## Step 5: Build for production
-
-```bash
-npm run build
-npm start
-```
-
-- `npm run build` runs `vite build` to bundle the React client and `esbuild` to compile the Express server to `dist/server.cjs`.
-- `npm start` boots the compiled server (`node dist/server.cjs`). It listens on `PORT` if set, otherwise `3000`.
-
-Use `npm run lint` (`tsc --noEmit`) to type-check the codebase before shipping.
-
-## Step 6: Deploy to Google Cloud Run
-
-The app is designed to run on Cloud Run with all secrets sourced from **GCP Secret Manager** — no `.env` file ships with the container.
-
-1. Store each secret in Secret Manager:
-
-   ```bash
-   echo -n "your-gemini-api-key" | gcloud secrets create gemini-api-key --data-file=-
-   echo -n "your-scraper-token"  | gcloud secrets create scraper-token  --data-file=-
-   ```
-
-2. Build and push a container image (a `Dockerfile` is included at the repo root):
-
-   ```bash
-   gcloud builds submit --tag gcr.io/PROJECT_ID/market-marksman:latest
-   ```
-
-3. Deploy to Cloud Run and bind the secrets as environment variables:
-
-   ```bash
-   gcloud run deploy market-marksman-api \
-     --image gcr.io/PROJECT_ID/market-marksman:latest \
-     --set-secrets GEMINI_API_KEY=projects/PROJECT_ID/secrets/gemini-api-key:latest \
-     --set-secrets SCRAPER_BEARER_TOKEN=projects/PROJECT_ID/secrets/scraper-token:latest \
-     --region us-central1 \
-     --allow-unauthenticated
-   ```
-
-Cloud Run injects `APP_URL` automatically and scales the service to zero when idle. The production security model — server-side key resolution, the `x-cloudscheduler-secret` header used by the `/api/cron/ingest` background sweep, and the canonical entity resolution pipeline — is documented alongside the app's Phase 1 architecture notes.
+This keeps the audit trail intact for anything that touches how the business operates. See [Development](/development) for the full set of supporting commands.
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Edit these docs" icon="pen-to-square" href="/development">
-    Preview and edit this documentation site locally.
+  <Card title="Development commands" icon="terminal" href="/development">
+    Type checks, tests, builds, and change-control verification.
   </Card>
-  <Card title="Customize the site" icon="palette" href="/essentials/settings">
-    Adjust branding, colors, and layout for your team.
+  <Card title="Site settings" icon="palette" href="/essentials/settings">
+    Customize the docs and site presentation.
   </Card>
 </CardGroup>
