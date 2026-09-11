@@ -45,7 +45,8 @@
           {
             "group": "Workflow packages",
             "pages": [
-              "workflows/overview"
+              "workflows/overview",
+              "workflows/playbooks"
             ]
           },
           {
@@ -91,6 +92,12 @@
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Playbooks",
+            "pages": [
+              "api-reference/playbooks"
             ]
           },
           {
