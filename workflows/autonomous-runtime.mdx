@@ -61,7 +61,7 @@ Reference these workflows by their `XXX-NN` ID in commit messages, change contro
 
 ### SAL-01: Inbound Lead Enrichment & Verification
 
-Enriches founder leads from Bootstrapper events and qualifies them for CRM triage. The workflow parses the inbound payload for name, company domain, and event notes, then enriches firmographics through Hunter.io and Clearbit. A guardrail step checks the lead against ICP criteria. Qualified leads are upserted into HubSpot and logged in the M365 master lead sheet.
+Enriches founder leads from Bootstrapper events and qualifies them for CRM triage. The workflow parses the inbound payload for name, company domain, and event notes, then enriches firmographics through Hunter.io and Clearbit. A guardrail step checks the lead against ICP criteria. The workflow upserts qualified leads into HubSpot and logs them in the M365 master lead sheet.
 
 ### FIN-01: M365 Daily Financial Reconciliation
 
@@ -73,7 +73,7 @@ Runs on every GitHub push and pull request. The workflow compiles TypeScript, ru
 
 ### MKT-06: Founder Signal Content Dissemination
 
-Runs Monday, Wednesday, and Friday at 09:00. The workflow extracts high-impact takeaways from recent operational briefs and case studies, then drafts 5 LinkedIn and X posts in the URC brand voice. A human-in-the-loop guardrail pauses the run for operator review of hooks, tone, and asset links. Approved drafts are staged in the content queue with scheduled publish dates.
+Runs Monday, Wednesday, and Friday at 09:00. The workflow extracts high-impact takeaways from recent operational briefs and case studies, then drafts 5 LinkedIn and X posts in the URC brand voice. A human-in-the-loop guardrail pauses the run for operator review of hooks, tone, and asset links. The workflow stages approved drafts in the content queue with scheduled publish dates.
 
 ### CRM-01: HubSpot Deal Stage & Pipeline Sync
 
@@ -93,7 +93,7 @@ Runs manually or on a contract-signed event. The workflow initializes an isolate
 
 #### Purchase ingestion endpoint
 
-FUL-01 also accepts customer purchase events directly through the runtime API. Send a purchase event to `POST /fulfillment/onboarding/ingest` when a payment lands from Stripe, PayPal, Gumroad, or a manual sale. The endpoint provisions entitlements, generates an onboarding and retention blueprint in the Results Vault, tags the contact in HubSpot (`customer_onboarded`, tier, and source tags), and schedules a 3-touch post-purchase retention sequence with milestones on days 1, 3, and 7.
+FUL-01 also accepts customer purchase events directly through the runtime API. Send a purchase event to `POST /fulfillment/onboarding/ingest` when a payment lands from Stripe, PayPal, Gumroad, or a manual sale. The endpoint provisions entitlements and generates an onboarding and retention blueprint in the Results Vault. It tags the contact in HubSpot with `customer_onboarded`, the tier, and the source. It then schedules a 3-touch post-purchase retention sequence with milestones on days 1, 3, and 7.
 
 The request body requires `customerName`, `customerEmail`, and `productPurchased`. If any of the three is missing, the endpoint returns `400`.
 
