@@ -5,7 +5,7 @@ description: 'Sign up, sign in, and manage sessions with the native Agent Lab au
 
 ## Overview
 
-Agent Lab ships native authentication endpoints for email/password sign-up and sign-in, Google sign-in, session lookup, and logout. Successful authentication sets a session cookie that stays valid for one year. Sign-up, login, and Google sign-in responses also return the session token in the response body, so clients can fall back to sending it as a `Bearer` token in the `Authorization` header when cookies are unavailable.
+Agent Lab ships native authentication endpoints for email/password sign-up and sign-in, Google sign-in, session lookup, and logout. Successful authentication sets a session cookie that stays valid for one year. Sign-up, login, and Google sign-in responses also return the session token in the response body. Clients can send it as a `Bearer` token in the `Authorization` header when cookies are unavailable.
 
 Every new account gets its own personal workspace. Agent Lab creates the workspace automatically and assigns the user the `owner` role in it. This happens on sign-up, on first Google sign-in, and on first email login (see [First-login auto-provisioning](#first-login-auto-provisioning)).
 
