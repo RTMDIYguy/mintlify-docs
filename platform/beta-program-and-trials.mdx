@@ -1,0 +1,81 @@
+---
+title: "Beta program and trial management"
+description: "How the gamified beta program, badge tiers, and 30-day Pro trial work, including trial extensions and the downgrade policy."
+---
+
+Agent Lab runs a gamified beta program alongside a 30-day Pro trial. Beta enrollment unlocks beta-only ecosystem apps in the Marketplace and earns rewards such as extra trial days. The Dashboard shows a live trial countdown and lets you extend the trial in 14-day increments.
+
+Use this page to understand which apps require beta enrollment, how badge tiers gate access, and how the trial countdown and extensions work. For the underlying endpoints, see the [Beta and trials API](/api-reference/beta-trials).
+
+## Beta badge tiers
+
+The beta program uses three progression tiers. Each beta program in the Marketplace lists the tier it requires.
+
+| Tier | Badge | Unlocks |
+| :--- | :--- | :--- |
+| Tier 1 | Explorer | Entry-level beta apps: LeadPulse and Pulse Social. |
+| Tier 2 | Contributor | Adds Market Marksman beta access. |
+| Tier 3 | Alpha Insider | Adds Agentic OS v2 (Autonomous Swarms) and direct access to the multi-agent Python SDK. |
+
+You earn beta points by participating in beta programs. Your current tier, point total, and enrolled apps appear in your beta status. Check it with `GET /api/beta/status`.
+
+## Beta-only Marketplace apps
+
+Three ecosystem apps now carry a **Live (Beta)** status in the Marketplace and require active beta enrollment or the listed badge tier:
+
+| App | Tier required | Reward for participating |
+| :--- | :--- | :--- |
+| Market Marksman | Contributor (Tier 2) | +14 Pro trial days on 5 signal tests. |
+| LeadPulse | Explorer (Tier 1) | +7 Pro trial days on feedback. |
+| Pulse Social | Explorer (Tier 1) | Priority generation rate limits. |
+
+Public apps such as the Founder Signal System sprint, the Assessment Generator, and the 48-hour LinkedIn campaign remain available without enrollment.
+
+## Enrolling in a beta program
+
+Enroll in a beta app from the Marketplace, or call the enrollment endpoint directly with the app's ID:
+
+```bash
+curl -X POST https://your-instance.example.com/api/beta/enroll/app-market-marksman
+```
+
+Enrollment is scoped to your workspace. Once enrolled, the program's status changes from `Available` to `Active` in your beta status response, and the app unlocks in the Marketplace.
+
+## The 30-day Pro trial
+
+New workspaces start on the **Ownable OS (Agentic OS Pro Trial)** plan with a 30-day trial. The Dashboard shows a countdown of days remaining and the projected trial end date.
+
+Check trial state programmatically:
+
+```bash
+curl https://your-instance.example.com/api/trials/status
+```
+
+### Extending the trial
+
+You can extend the trial in +14-day increments from the Dashboard with the **Activate +14 Days** button, or by calling `POST /api/trials/extend`. Each extension adds 14 days to the total trial length. Extensions are capped: the `canExtend` field in the trial status response turns `false` once accumulated extensions reach 28 days.
+
+```bash
+curl -X POST https://your-instance.example.com/api/trials/extend \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Participating in Founder Beta feedback program"}'
+```
+
+The `reason` field is optional and defaults to `Founder Beta Extension`.
+
+### What happens when the trial ends
+
+The trial status response includes a `downgradePolicy` object that spells out what a workspace keeps and what pauses after downgrade.
+
+Retained after downgrade:
+
+- 1 active swarm agent (Alpha-Node-01).
+- 5 daily autonomous DAG runs.
+- Full access to the workspace knowledge base and saved SOPs.
+- Exportable audit logs and compliance reports.
+
+Paused after downgrade:
+
+- Multi-agent swarm concurrency (more than 1 agent).
+- Real-time automated background schedulers.
+- Beta ecosystem app integration hub.

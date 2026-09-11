@@ -3,6 +3,12 @@ title: "Agent Lab changelog: weekly features, updates, and fixes"
 description: "Weekly updates on new Agent Lab features, improvements, and fixes, so you can track what shipped and how it affects your workflow."
 ---
 
+## Week of September 11, 2026
+
+### Updates
+
+- **More thorough pre-release code review.** Every proposed change to the platform now runs through an automated multi-reviewer check before it can be merged. The check posts a synthesized review on each pull request, so issues get caught earlier and releases stay steady. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+
 ## Week of September 7, 2026
 
 ### New features
@@ -11,6 +17,7 @@ description: "Weekly updates on new Agent Lab features, improvements, and fixes,
 
 ### Updates
 
+- **Test framework upgrade.** The framework that runs the platform's automated test suite moved up a major version. The new release clears mocks between tests by default and fails tests that skip asynchronous assertions, so the suite catches regressions earlier and keeps releases reliable. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
 - **TypeScript compiler upgrade.** The compiler that checks and builds the platform's code moved up two major versions to TypeScript 7, the new natively compiled release. You get faster builds and earlier detection of code issues before each release. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
 - **Platform-wide library refresh.** More than 50 production libraries moved to their latest minor and patch releases. The refresh covers the interface components behind forms, dialogs, menus, tabs, and charts, plus AI, payments, file storage, and database connectivity. You get faster interactions, security fixes, and compatibility with the newest AI models and payment provider features. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
 - **Package manager upgrade.** The tool that installs the platform's dependencies moved up two major versions. You get faster dependency resolution and more reliable builds behind the scenes. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
@@ -48,8 +55,8 @@ description: "Weekly updates on new Agent Lab features, improvements, and fixes,
 
 ### Updates
 
-- **More reliable releases.** A new end-to-end testing setup now seeds and tears down realistic data across the app before every release. You get faster iteration on the features you rely on — signups, subscriptions, blog, newsletter, contact forms, and checkout — with fewer regressions.
-- **Stronger security posture.** Automated code security scanning now runs on every change and on a regular schedule, so vulnerabilities are caught earlier. No action is required from you — the checks run behind the scenes to help keep your account and data safer.
+- **More reliable releases.** A new end-to-end testing setup now seeds and tears down realistic data across the app before every release. You get faster iteration on the features you rely on, including signups, subscriptions, blog, newsletter, contact forms, and checkout, with fewer regressions.
+- **Stronger security posture.** Automated code security scanning now runs on every change and on a regular schedule, so vulnerabilities are caught earlier. No action is required from you. The checks run behind the scenes to help keep your account and data safer.
 
 <Note>
   Nothing about your account, data, or day-to-day workflow changes with this
