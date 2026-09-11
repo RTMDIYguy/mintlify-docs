@@ -1,0 +1,161 @@
+---
+title: 'Python SDK'
+description: 'Use the official AgentLab Python SDK to manage swarm agents, trigger DAG workflows, control agent sessions, and stream real-time events.'
+---
+
+## Overview
+
+The `agentlab-sdk` package is the official Python client for the AgentLab Agentic OS. It wraps the AgentLab HTTP API in a single `AgentLabClient` class so you can automate the platform from scripts, notebooks, or backend services instead of the dashboard.
+
+Use the SDK when you need to:
+
+- List, deploy, pause, or resume swarm agent nodes.
+- Trigger DAG workflow runs and approve or reject them as a human-in-the-loop operator.
+- Create and control agent sessions, including messaging, navigation, and screenshots.
+- Stream real-time Server-Sent Events (SSE) from a session.
+- Read SAIF compliance stats and audit logs.
+- Mount and unmount knowledge playbooks from the marketplace.
+
+The SDK requires Python 3.9 or later and depends on `requests`, `urllib3`, and `typing-extensions`.
+
+## Installation
+
+Install the SDK in editable mode from the `sdk/python` directory of the AgentLab repository:
+
+```bash
+pip install -e ./sdk/python
+```
+
+## Client setup
+
+Create an `AgentLabClient` with the base URL of your AgentLab instance and a workspace token:
+
+```python
+from agentlab import AgentLabClient
+
+client = AgentLabClient(
+    base_url="http://localhost:3000",
+    api_key="<YOUR_WORKSPACE_TOKEN>",
+)
+```
+
+The constructor accepts three parameters:
+
+| Parameter | Default | Description |
+| :--- | :--- | :--- |
+| `base_url` | `http://localhost:3000` | Target AgentLab instance. Point this at your local runtime or your production deployment. |
+| `api_key` | Empty | JWT token or API key for workspace authentication. Sent as a `Bearer` token in the `Authorization` header. |
+| `timeout` | `30.0` | HTTP request timeout in seconds. |
+
+If you omit `base_url` or `api_key`, the client reads the `AGENTLAB_BASE_URL` and `AGENTLAB_API_KEY` environment variables. If a request fails, the client raises a `RuntimeError` that includes the HTTP status code and the response body.
+
+## Quickstart
+
+```python
+from agentlab import AgentLabClient
+
+client = AgentLabClient(
+    base_url="http://localhost:3000",
+    api_key="<YOUR_WORKSPACE_TOKEN>",
+)
+
+# Check SAIF compliance and 24h telemetry counters
+stats = client.get_audit_stats()
+print("24h Events:", stats["totalEvents24h"])
+print("SAIF Compliance:", stats["saifComplianceRate"])
+
+# List swarm agents
+agents = client.list_agents()["agents"]
+for agent in agents:
+    print(f"{agent['name']} ({agent['status']}) - {agent['role']}")
+
+# Pause or resume an agent node
+client.toggle_agent("alpha-node-01")
+
+# Trigger a DAG workflow run
+run = client.trigger_workflow(
+    workflow_id="mkt-01-lead-scraper",
+    inputs={"target_industry": "Healthcare", "lead_count": 25},
+)
+print("Triggered Run ID:", run["runId"])
+
+# Mount a knowledge playbook
+client.mount_playbook("ops-playbook")
+```
+
+## Swarm agents
+
+Manage the agent nodes in your swarm:
+
+- `list_agents()` returns active swarm agents and telemetry counters.
+- `toggle_agent(agent_id)` pauses or resumes an agent node.
+- `deploy_agent(payload)` deploys a new autonomous swarm agent node.
+
+## Workflows and DAG runs
+
+Trigger and supervise autonomous DAG executions:
+
+- `list_workflows()` lists all deployable DAG workflows.
+- `trigger_workflow(workflow_id, inputs)` starts a run and returns its `runId`.
+- `list_runs()` and `get_run(run_id)` return execution traces and detailed run state.
+- `approve_run(run_id)` and `reject_run(run_id, reason)` handle human-in-the-loop operator decisions.
+
+```python
+run = client.trigger_workflow("mkt-01-lead-scraper", inputs={"lead_count": 25})
+details = client.get_run(run["runId"])
+client.approve_run(run["runId"])
+```
+
+## Agent sessions
+
+Create and control autonomous agent sessions, including browser interaction:
+
+- `create_session(agent_name)`, `list_sessions()`, `get_session(session_id)`, and `delete_session(session_id)` manage the session lifecycle.
+- `message_agent(session_id, message)` sends a natural language instruction.
+- `navigate(session_id, url)` directs the agent to browse a URL.
+- `screenshot(session_id)` captures a live viewport screenshot.
+- `pause(session_id)`, `resume(session_id)`, and `cancel(session_id)` control execution.
+
+The `AgentLabSession` context manager creates a session on entry and deletes it on exit:
+
+```python
+from agentlab import AgentLabClient, AgentLabSession
+
+client = AgentLabClient()
+
+with AgentLabSession(client, agent_name="Alpha-Node-01") as session:
+    client.message_agent(session.session_id, "Summarize today's pipeline results")
+```
+
+## Real-time SSE event streaming
+
+`stream_events()` yields live agent reasoning steps, tool calls, and model tokens from a session as parsed Server-Sent Events. Each event is a dictionary with `id`, `event`, and `data` keys:
+
+```python
+for event in client.stream_events(session_id="session_123", sanitize=True):
+    print(f"[{event['event']}] -> {event['data']}")
+```
+
+Streaming options:
+
+| Parameter | Default | Description |
+| :--- | :--- | :--- |
+| `sanitize` | `True` | Redact sensitive values from streamed events. |
+| `include_history` | `True` | Replay earlier session events before streaming live ones. |
+| `event_types` | All | Optional list of event types to filter the stream. |
+
+## Auditing and SAIF compliance
+
+- `get_audit_stats()` returns real-time SAIF compliance rates and 24-hour event counters.
+- `get_audit_logs()` fetches model execution traces and policy check telemetry.
+
+## Marketplace and playbooks
+
+- `list_marketplace_items()` fetches available playbooks, apps, and books.
+- `mount_playbook(playbook_id)` mounts a knowledge playbook into the active workspace.
+- `unmount_playbook(playbook_id)` removes it.
+
+## System health and models
+
+- `health()` checks system health status.
+- `list_models()` lists the active foundational LLM backbones.
