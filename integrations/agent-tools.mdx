@@ -3,9 +3,9 @@ title: "Agent tools: departmental suite and HubSpot CRM"
 description: "Tools agents use for content, file operations, diagnostics, and HubSpot CRM, plus token setup, fallback data, and the anti-passivity refusal gate."
 ---
 
-Autonomous agents in Agent Lab run with a built-in toolset that spans content creation, information architecture, diagnostics, research, email dispatch (`sendAgentMail`), internal knowledge (`searchLocalFiles`, `readLocalFile`), and five live HubSpot CRM tools. Agents call these tools directly when a workflow step asks them to draft content, organize files, diagnose runs, check deal stages, sync contacts, or manage the sales pipeline.
+Autonomous agents in Agent Lab run with a built-in toolset. It spans content creation, information architecture, diagnostics, research, email dispatch (`sendAgentMail`), internal knowledge (`searchLocalFiles`, `readLocalFile`), and five live HubSpot CRM tools. Agents call these tools directly when a workflow step asks them to draft content, organize files, diagnose runs, check deal stages, sync contacts, or manage the sales pipeline.
 
-Use this page to understand what actions agents can perform, how to connect the CRM tools to your HubSpot account, what happens when no token is configured, and how the refusal gate keeps step results honest.
+Use this page to understand what actions agents can perform and how to connect the CRM tools to your HubSpot account. It also covers what happens when no token is configured and how the refusal gate keeps step results honest.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ Beyond the CRM tools, the agent runner exposes departmental tools grouped by fun
 | Diagnostics and delivery | `inspectExecutionLogs`, `verifyReportDelivery`, `checkCompletionCache` | Inspect execution logs and audit traces to diagnose failures; verify reports were stored in the Artifact Vault and dispatched; check completion caches to avoid duplicate runs. |
 | Content and creative | `saveContentDraft`, `saveOutputDocument`, `generateVisualSpec` | Save drafted posts, articles, or newsletter copy to the Content Queue and Calendar; save reports, SOPs, and CSV deliverables to the Artifact Vault; generate visual specs and image generation prompts. |
 
-After each step, the queue processor extracts structured artifacts from the agent's output (social posts, calendar items, documents, and visual specs), scores their quality, and persists them to the workspace so deliverables survive the run.
+After each step, the queue processor extracts structured artifacts from the agent's output: social posts, calendar items, documents, and visual specs. It scores their quality and persists them to the workspace so deliverables survive the run.
 
 The local knowledge tools respect department unlocks. `searchLocalFiles` and `readLocalFile` only return workflow kit files for departments unlocked in your workspace; a workspace with `ALL` unlocked has no restriction.
 
