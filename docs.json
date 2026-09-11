@@ -68,6 +68,13 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "guides/workspace-snapshots",
+              "guides/ops-agent-proposals"
+            ]
+          },
+          {
             "group": "AI tools",
             "pages": [
               "ai-tools/cursor",
@@ -150,6 +157,12 @@
             "group": "Audit logs",
             "pages": [
               "api-reference/audit-logs"
+            ]
+          },
+          {
+            "group": "Workspace snapshots",
+            "pages": [
+              "api-reference/snapshots"
             ]
           }
         ]
