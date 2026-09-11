@@ -43,9 +43,28 @@
             ]
           },
           {
+            "group": "Platform",
+            "pages": [
+              "platform/command-center"
+            ]
+          },
+          {
             "group": "Workflow packages",
             "pages": [
-              "workflows/overview"
+              "workflows/overview",
+              "workflows/playbooks"
+            ]
+          },
+          {
+            "group": "Platform",
+            "pages": [
+              "platform/auditing"
+            ]
+          },
+          {
+            "group": "Marketplace",
+            "pages": [
+              "marketplace/overview"
             ]
           },
           {
@@ -63,9 +82,9 @@
             ]
           },
           {
-            "group": "Integrations",
+            "group": "Swarm operations",
             "pages": [
-              "integrations/agent-tools"
+              "agents/managing-agents"
             ]
           }
         ]
@@ -87,7 +106,14 @@
           {
             "group": "API documentation",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "pages": [
+              "api-reference/python-sdk"
             ]
           },
           {
@@ -100,9 +126,22 @@
             ]
           },
           {
+            "group": "Playbooks",
+            "pages": [
+              "api-reference/playbooks"
+            ]
+          },
+          {
             "group": "Integrations",
             "pages": [
-              "api-reference/government-apis"
+              "api-reference/government-apis",
+              "api-reference/ai-studio-sync"
+            ]
+          },
+          {
+            "group": "Audit logs",
+            "pages": [
+              "api-reference/audit-logs"
             ]
           }
         ]
