@@ -1,0 +1,34 @@
+---
+title: 'Customizing Ops Agent workflow proposals'
+description: 'Edit, remove, or add DAG steps in an Ops Agent workflow proposal card before approving execution.'
+---
+
+## Overview
+
+When you ask the Ops Agent chat to build a workflow, it replies with an interactive proposal card that lays out the workflow as a series of DAG (directed acyclic graph) execution steps. Before anything runs, you can customize the proposal directly in the card: edit step titles and details, remove steps you don't want, or add your own custom steps. The workflow only executes after you approve it.
+
+Use the step customizer when the agent's proposal is close but not exact. Adjusting steps in the card is faster than re-prompting for small changes.
+
+## Editing steps in the proposal card
+
+Each step in the card shows an editable title and detail line plus a remove control:
+
+- **Edit a step**: click the step's title or detail text and type your changes inline. Edits apply immediately to the proposal.
+- **Remove a step**: click the **X** on the step. Remaining steps renumber automatically.
+- **Add a step**: click **+ Add Custom Execution Step** at the bottom of the step list. A new editable step is appended; rename it and set its detail to describe the operational action.
+
+The **Approve & Execute DAG** button is disabled while a proposal has zero steps, so you cannot execute an empty workflow.
+
+## Approving or rejecting a proposal
+
+Once the steps match what you want, click **Approve & Execute DAG** to run the workflow. The card shows the run ID and latency when execution completes.
+
+If the proposal needs a larger revision than inline edits can cover, click **Reject / Revise** and describe what should change. Your feedback is staged in the prompt bar as a revision request; send it and the Ops Agent generates an updated proposal.
+
+## How the agent frames proposals
+
+The Ops Agent behaves consultatively. It asks one or two clarifying questions about your context (current tools, target volume, who reviews outputs) before proposing a workflow, explains the rationale behind each step, and reminds you that you can edit, delete, or add steps in the proposal card before deployment.
+
+<Tip>
+  Give specific answers to the agent's clarifying questions. The more context it has about your tools and volume, the fewer steps you need to hand-edit in the card.
+</Tip>

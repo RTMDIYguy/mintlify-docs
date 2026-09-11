@@ -1,0 +1,96 @@
+---
+title: "Results Vault, Run Inspector, and the quality flywheel"
+description: "Inspect workflow run traces, approve or reject paused runs, download artifacts, and improve outputs with the evaluate and refine quality loop."
+---
+
+Every workflow run in Agent Lab produces verifiable results: step-by-step execution traces, tool call telemetry, and tangible output artifacts such as posts, briefs, and reports. Three surfaces expose them:
+
+- **Results Vault**: the artifact library in the Command Center, including a content calendar view of scheduled posts.
+- **Run Inspector**: a modal that shows the full execution trace for any run. Open it from the Dashboard, the Auditing page, or the Command Center.
+- **Quality flywheel**: an evaluate-and-refine loop that scores every artifact against a quality rubric and rewrites weak outputs with AI.
+
+Use this page to verify what a run actually did, gate runs that wait for approval, and raise artifact quality before anything ships.
+
+## Inspect a run
+
+Click **Inspect Run & Tools** on a run in the Dashboard, **Inspect Execution Run** on an audit entry in the Auditing page, or **Inspect** on a run in the Command Center. The Run Inspector opens with four tabs:
+
+| Tab | What it shows |
+| :--- | :--- |
+| **DAG Steps** | Every step in execution order with its title, step type, assigned agent, and status. |
+| **Tool Evidence** | Each tool call the agents executed during the run, so you can verify claimed work against real telemetry. |
+| **Output Artifacts** | Artifacts the run produced, each with a **Download** action. |
+| **Context JSON** | The raw context payload passed through the run. |
+
+The inspector also aggregates run-level metrics: total tool calls, total cost, and total latency across all steps.
+
+To fetch the same data programmatically, call `GET /api/runs/:runId`. See the [Runs API](/api-reference/runs).
+
+## Approve or reject a paused run
+
+Workflows that include an approval gate pause with the status `paused_for_approval` and wait for an operator decision. From the Run Inspector (or the run list in the Command Center):
+
+- **Approve & Resume** sets the run back to `pending` and immediately resumes execution.
+- **Reject Run** marks the run `failed` with the error message `Rejected by user` and ends it.
+
+Both actions only apply to runs in `paused_for_approval`. Approving or rejecting a run in any other status returns HTTP `400`.
+
+Programmatic equivalents: `POST /api/runs/:runId/approve` and `POST /api/runs/:runId/reject`.
+
+## Browse the Results Vault
+
+The Results Vault lives in the Command Center under **Content Calendar & Scheduled Posts**. It lists workflow artifacts across your workspace and tracks each artifact through its lifecycle:
+
+- `draft`: generated but not yet queued.
+- `scheduled`: queued with a `scheduledFor` timestamp.
+- `published`: shipped to its target platform.
+- `archived`: retired.
+
+Each artifact carries an `artifactType` (`post`, `calendar_entry`, `document`, `file`, `crm_diff`, or `csv`), a `targetPlatform` (for example `linkedin`, `blog`, `newsletter`, `hubspot`, or `internal`), and its quality score.
+
+The content calendar view pulls all `post` artifacts ordered by scheduled date and totals drafts, scheduled items, and published items. Fetch it directly with `GET /api/artifacts/content-calendar`.
+
+### Download an artifact
+
+Click **Download** on any artifact in the Run Inspector's **Output Artifacts** tab or in the Results Vault. Agent Lab serves the raw content as a file: `csv` artifacts download as `.csv`, everything else as `.md`. The API equivalent is `GET /api/artifacts/:id/download`.
+
+### Change artifact status
+
+Move an artifact through its lifecycle (for example `draft` to `scheduled`) from the Results Vault, or call `PATCH /api/artifacts/:id` with a new `status` and optional `scheduledFor` timestamp.
+
+## The quality flywheel
+
+Every artifact is scored 0-100 against a four-part rubric:
+
+| Rubric dimension | What it checks |
+| :--- | :--- |
+| Brand alignment | Concise, authentic voice with no corporate boilerplate or filler phrases. |
+| Actionable CTA | A clear next step for the reader. |
+| Factual integrity | No unpopulated template placeholders like `[INSERT NAME]` or `{{company}}`. |
+| Formatting | Structure appropriate for the target platform. |
+
+The composite score maps to a grade: `A` (88+), `B` (75-87), `C` (60-74), `F` (below 60). An artifact passes when it scores 70 or higher and contains no placeholders. Scores, grades, feedback, and suggestions are stored on the artifact in `verificationNotes`.
+
+### Evaluate
+
+Click **Re-evaluate** on an artifact in the Command Center, or call `POST /api/artifacts/:id/evaluate`, to re-score it on demand. Evaluation updates the artifact's `qualityScore`, `qualityGrade`, and `verificationNotes` in place.
+
+### Refine
+
+Use **Refine with Agent** in the Command Center's **Agent Self-Correction & Refinement** panel, or call `POST /api/artifacts/:id/refine`, to rewrite an artifact. You can pass operator instructions, or leave them empty to let the flywheel refine based on the artifact's own quality feedback.
+
+Refinement:
+
+1. Evaluates the original content.
+2. Rewrites it with Gemini (`gemini-2.5-flash`) when a Google AI API key is configured. Without a key, it applies deterministic cleanup that strips placeholders and filler phrases.
+3. Re-evaluates the rewritten content.
+4. Saves the result as a **new artifact revision** with an incremented `revisionVersion` and a `parentArtifactId` pointing at the original. The original artifact is never overwritten.
+
+Repeat evaluate and refine until the artifact reaches the grade you want, then schedule it from the Results Vault.
+
+## API access
+
+All Results Vault and Run Inspector data is available over the REST API:
+
+- [Runs API](/api-reference/runs): list runs, fetch full run details, approve and reject paused runs.
+- [Artifacts API](/api-reference/artifacts): list, download, evaluate, refine, and update artifacts, plus the content calendar feed.

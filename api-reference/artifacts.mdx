@@ -1,0 +1,173 @@
+---
+title: 'Artifacts'
+description: 'List, download, and update workflow artifacts, fetch the content calendar feed, and run the evaluate and refine quality loop.'
+---
+
+Artifacts are the tangible outputs workflow runs produce: posts, calendar entries, documents, files, CRM diffs, and CSVs. The Artifacts API backs the [Results Vault](/workflows/results-vault#browse-the-results-vault) in the Command Center and powers the quality flywheel.
+
+All endpoints are scoped to the authenticated workspace. Requests without a workspace return HTTP `401`.
+
+## The artifact object
+
+Key fields on every artifact:
+
+| Field | Description |
+| :--- | :--- |
+| `artifactType` | One of `post`, `calendar_entry`, `document`, `file`, `crm_diff`, `csv`. |
+| `title`, `content`, `summary` | The artifact's name, full body, and optional summary. |
+| `status` | Lifecycle state: `draft`, `scheduled`, `published`, or `archived`. |
+| `scheduledFor` | Timestamp for scheduled items. |
+| `targetPlatform` | Destination, for example `linkedin`, `blog`, `newsletter`, `hubspot`, `internal`. |
+| `qualityScore`, `qualityGrade` | Composite 0-100 quality score and letter grade (`A`, `B`, `C`, `F`). |
+| `verificationNotes` | Rubric breakdown, feedback, suggestions, and pass/fail from the latest evaluation. |
+| `revisionVersion`, `parentArtifactId` | Revision lineage created by the refine endpoint. |
+| `workflowRunId`, `workflowRunStepId`, `workflowId` | The run, step, and workflow that produced the artifact. |
+
+## List artifacts
+
+```http
+GET /api/artifacts
+```
+
+Returns artifacts for the workspace, newest first. Query parameters:
+
+| Parameter | Description |
+| :--- | :--- |
+| `type` | Filter by `artifactType`. Omit or pass `all` for every type. |
+| `status` | Filter by lifecycle status. Omit or pass `all` for every status. |
+| `runId` | Only artifacts from one workflow run. |
+| `limit` | Maximum results. Defaults to `50`. |
+
+```bash
+curl "https://your-instance/api/artifacts?type=post&status=draft&limit=20"
+```
+
+```json
+{
+  "workspaceId": "3c4d5e6f-...",
+  "artifacts": [ { "id": "7e8f9a0b-...", "artifactType": "post", "status": "draft" } ],
+  "totalCount": 1
+}
+```
+
+## Get the content calendar
+
+```http
+GET /api/artifacts/content-calendar
+```
+
+Returns up to 100 `post` artifacts ordered by scheduled date, formatted for the Command Center calendar view, plus counts by status:
+
+```json
+{
+  "workspaceId": "3c4d5e6f-...",
+  "calendarItems": [ ... ],
+  "totalScheduled": 4,
+  "totalDrafts": 7,
+  "totalPublished": 12,
+  "localContentQueueExcerpt": ""
+}
+```
+
+## Download an artifact
+
+```http
+GET /api/artifacts/:id/download
+```
+
+Streams the artifact's raw content as a file attachment. `csv` artifacts download with a `.csv` extension and `text/csv` content type; all other types download as `.md` with `text/markdown`. The filename is derived from the artifact title and a short ID suffix.
+
+Returns HTTP `404` if the artifact is not found in the workspace.
+
+## Update artifact status
+
+```http
+PATCH /api/artifacts/:id
+```
+
+Moves an artifact through its lifecycle. Body fields:
+
+| Field | Description |
+| :--- | :--- |
+| `status` | New lifecycle state, for example `scheduled` or `published`. |
+| `scheduledFor` | ISO 8601 timestamp for when the artifact should ship. |
+
+```bash
+curl -X PATCH https://your-instance/api/artifacts/7e8f9a0b-.../ \
+  -H "Content-Type: application/json" \
+  -d '{"status": "scheduled", "scheduledFor": "2026-09-10T15:00:00Z"}'
+```
+
+```json
+{ "success": true, "message": "Artifact status updated" }
+```
+
+## Evaluate an artifact
+
+```http
+POST /api/artifacts/:id/evaluate
+```
+
+Re-scores the artifact against the quality rubric (brand alignment, actionable CTA, factual integrity, formatting) and updates its `qualityScore`, `qualityGrade`, and `verificationNotes` in place.
+
+```json
+{
+  "success": true,
+  "artifactId": "7e8f9a0b-...",
+  "evaluation": {
+    "score": 84,
+    "grade": "B",
+    "passed": true,
+    "feedback": ["No raw placeholders or template leakage detected."],
+    "suggestions": ["Add a direct call to action."],
+    "rubric": {
+      "brandAlignment": 95,
+      "actionableCta": 70,
+      "factualIntegrity": 100,
+      "formatting": 90
+    },
+    "evaluatedAt": "2026-09-06T12:00:00.000Z"
+  }
+}
+```
+
+An artifact passes when its composite score is 70 or higher and it contains no template placeholders. Grades map to score bands: `A` (88+), `B` (75-87), `C` (60-74), `F` (below 60).
+
+## Refine an artifact
+
+```http
+POST /api/artifacts/:id/refine
+```
+
+Rewrites the artifact and saves the result as a new revision. Body fields:
+
+| Field | Description |
+| :--- | :--- |
+| `instructions` | Optional operator instructions. When omitted, the flywheel refines based on the artifact's own quality feedback. |
+
+Refinement evaluates the original content, then rewrites it with Gemini (`gemini-2.5-flash`) when a Google AI API key is configured. Without a key, it falls back to deterministic placeholder and filler cleanup. It then re-evaluates the result and inserts a new artifact with an incremented `revisionVersion` and `parentArtifactId` set to the original. The original artifact is never modified.
+
+```bash
+curl -X POST https://your-instance/api/artifacts/7e8f9a0b-.../refine \
+  -H "Content-Type: application/json" \
+  -d '{"instructions": "Tighten the hook and end with a question."}'
+```
+
+```json
+{
+  "success": true,
+  "originalArtifactId": "7e8f9a0b-...",
+  "refinedArtifactId": "1a2b3c4d-...",
+  "refinedContent": "...",
+  "revisionVersion": 2,
+  "evaluation": { "score": 93, "grade": "A", "passed": true }
+}
+```
+
+## Get artifacts for a run
+
+```http
+GET /api/runs/:runId/artifacts
+```
+
+Returns all artifacts produced by one workflow run, oldest first. See the [Runs API](/api-reference/runs#get-run-artifacts).

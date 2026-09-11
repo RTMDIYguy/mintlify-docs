@@ -1,0 +1,171 @@
+---
+title: 'Voice endpoints'
+description: 'Text-to-speech, appointment slots, mid-call booking, call webhooks, and outbound dispatch for the Pamela voice agent.'
+---
+
+## Overview
+
+The voice gateway exposes five endpoints under `/api/voice` that power the [Pamela voice agent](/voice/pamela-voice-agent). Use them to synthesize speech, look up appointment availability mid-call, book appointments live, ingest post-call data, and dispatch outbound calls.
+
+All endpoints accept and return JSON, except `POST /api/voice/tts`, which returns raw MP3 audio.
+
+<Note>
+  Speech synthesis requires the `ELEVENLABS_API_KEY` environment variable. See the [Pamela voice agent guide](/voice/pamela-voice-agent) for configuration.
+</Note>
+
+## POST /api/voice/tts
+
+Synthesizes speech from text using ElevenLabs and returns the audio as `audio/mpeg`. The response includes an `X-Voice-Id` header identifying the voice that was used.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `text` | string | Yes | The text to synthesize. |
+| `voiceId` | string | No | ElevenLabs voice ID. Defaults to `ELEVENLABS_VOICE_ID_PAMELA`, then the built-in Pamela voice. |
+| `modelId` | string | No | ElevenLabs model ID. Defaults to `eleven_multilingual_v2`. |
+
+### Example
+
+```bash
+curl -X POST https://your-domain.example/api/voice/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hi, this is Pamela. How can I help you today?"}' \
+  --output pamela.mp3
+```
+
+Returns HTTP `400` if `text` is missing. Returns HTTP `500` if `ELEVENLABS_API_KEY` is not configured or the ElevenLabs API call fails.
+
+## GET /api/voice/slots
+
+Returns available diagnostic appointment slots. Pamela calls this endpoint mid-call to propose times to the caller.
+
+### Example response
+
+```json
+{
+  "available": true,
+  "timezone": "America/Chicago (Central)",
+  "slots": [
+    "2026-09-08T10:00:00.000Z",
+    "2026-09-08T14:00:00.000Z",
+    "2026-09-09T11:30:00.000Z",
+    "2026-09-09T16:00:00.000Z"
+  ],
+  "humanHost": "Robert M. (Uncle Robert Consulting)"
+}
+```
+
+## POST /api/voice/book
+
+Books an appointment during a live call. The booking is written to the security audit log and a booking reference is returned.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `callerPhone` | string | Yes | Caller's phone number. |
+| `scheduledSlot` | string | Yes | ISO datetime or slot string from `GET /api/voice/slots`. |
+| `callerName` | string | No | Caller's name. |
+| `callerEmail` | string | No | Caller's email address. |
+| `serviceInterest` | string | No | One of `CRE`, `MedSpa`, `FounderSignal`, or `General`. |
+| `notes` | string | No | Free-form notes from the call. |
+| `agentSessionId` | string | No | Voice agent session identifier. |
+
+### Example
+
+```bash
+curl -X POST https://your-domain.example/api/voice/book \
+  -H "Content-Type: application/json" \
+  -d '{
+    "callerName": "Jane Doe",
+    "callerPhone": "+15551234567",
+    "serviceInterest": "CRE",
+    "scheduledSlot": "2026-09-08T14:00:00.000Z"
+  }'
+```
+
+### Example response
+
+```json
+{
+  "success": true,
+  "bookingRef": "VBK-M1A2B3C4",
+  "status": "confirmed",
+  "message": "Appointment reserved for +15551234567 on 2026-09-08T14:00:00.000Z. Calendar invite dispatched."
+}
+```
+
+Returns HTTP `400` if `callerPhone` or `scheduledSlot` is missing.
+
+## POST /api/voice/webhook
+
+Ingests post-call data from the voice provider: recording, transcript, sentiment, and disposition. Call details are logged to the Results Vault and CRM.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `callId` | string | Yes | Unique identifier for the call. |
+| `callerNumber` | string | No | Caller's phone number. |
+| `durationSeconds` | number | No | Call duration in seconds. |
+| `transcript` | string | No | Full call transcript. |
+| `sentiment` | string | No | One of `positive`, `neutral`, `negative`, or `curious`. |
+| `recordingUrl` | string | No | URL of the call recording. |
+| `disposition` | string | No | One of `booked`, `follow_up`, `not_interested`, or `voicemail`. |
+| `summary` | string | No | Short call summary. |
+| `agentId` | string | No | Identifier of the agent that handled the call. |
+
+### Example response
+
+```json
+{
+  "received": true,
+  "callId": "call_8f3a2b",
+  "crmStatus": "logged_to_vault",
+  "timestamp": "2026-09-07T18:20:00.000Z"
+}
+```
+
+Returns HTTP `400` if `callId` is missing.
+
+## POST /api/voice/dispatch
+
+Queues an outbound call from Pamela with a campaign-specific script. The endpoint builds the script from the lead context, logs the dispatch to the security audit log, and returns the script alongside a dispatch ID.
+
+### Request body
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `recipientPhone` | string | Yes | Phone number to call. |
+| `leadName` | string | No | Lead's name, inserted into the script. |
+| `companyName` | string | No | Lead's company, inserted into the script. |
+| `campaignType` | string | No | One of `CRE`, `MedSpa`, or `FounderSignal`. Defaults to `FounderSignal`. |
+
+### Example
+
+```bash
+curl -X POST https://your-domain.example/api/voice/dispatch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "recipientPhone": "+15559876543",
+    "leadName": "Alex",
+    "companyName": "Acme Retail",
+    "campaignType": "CRE"
+  }'
+```
+
+### Example response
+
+```json
+{
+  "success": true,
+  "dispatchId": "VOUT-M1A2B3C4",
+  "status": "queued",
+  "recipientPhone": "+15559876543",
+  "scriptPrompt": "Hi Alex, this is Pamela with the Uncle Robert Consulting Commercial Real Estate Practice at Acme Retail...",
+  "agentAssigned": "Pamela (ElevenLabs Conversational Engine)"
+}
+```
+
+Returns HTTP `400` if `recipientPhone` is missing.
