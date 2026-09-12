@@ -5,9 +5,14 @@ description: "Weekly updates on new Agent Lab features, improvements, and fixes,
 
 ## Week of September 11, 2026
 
+### New features
+
+- **Bootstrapper partner badges in the footer.** The site footer now shows official partner badges for Bootstrapper Capital and Bootstrapper.ai alongside the existing IONOS Cloud badge. Each badge links out to the partner site in a new tab. Use them to jump straight to the community and AI operating partners without leaving the current page. See the [Quickstart](/quickstart) to get started.
+
 ### Updates
 
 - **More thorough pre-release code review.** Every proposed change to the platform now runs through an automated multi-reviewer check before it can be merged. The check posts a synthesized review on each pull request, so issues get caught earlier and releases stay steady. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+- **HTML sanitization hardening.** The library that sanitizes user-generated HTML across the platform moved up three patch releases. The upgrade adds tighter hardening against DOM clobbering in XML contexts, closes edge-case bypasses when risky tags are allow-listed, and fixes a hook handling issue during in-place sanitization. You get stronger protection against injected markup wherever the platform renders user-supplied content, with no change to how the app looks or works day-to-day. See the [Quickstart](/quickstart) to get started.
 
 ### Bug fixes
 
