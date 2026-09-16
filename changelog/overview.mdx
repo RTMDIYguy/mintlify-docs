@@ -3,6 +3,18 @@ title: "Agent Lab changelog: weekly features, updates, and fixes"
 description: "Weekly updates on new Agent Lab features, improvements, and fixes, so you can track what shipped and how it affects your workflow."
 ---
 
+## Week of September 14, 2026
+
+### Updates
+
+- **React 19.3 upgrade.** The framework that renders every screen in the platform moved up to React 19.3. The release adds native support for View Transitions, so future navigation and list animations can be smoother. You get faster rendering and a stronger foundation for upcoming interface polish, with no change to how the app looks or works day-to-day. See the [Quickstart](/quickstart) to get started.
+- **Firebase 12.19 upgrade.** The Firebase client that powers sign-in, Firestore, analytics, and in-app AI moved to the latest minor release. It fixes a bug that could return a `400` error when the in-app AI called a function on newer Gemini models. It also corrects a validation issue that blocked structured `enum` responses when a response schema was provided. You get more reliable AI-assisted features and no change to how you sign in or use your data. See the [Quickstart](/quickstart) to get started.
+- **AI SDK refresh.** The AI SDK that powers model calls across the platform moved up several patch releases. The upgrade adds batch cancel and list APIs for long-running generations and supports per-request model selection inside a batch. It also tightens retry handling on transient empty image results and enforces tool choices in streamed responses. You get more predictable AI runs and safer recovery when a provider hiccups, with no change to how the app looks day-to-day. See the [Quickstart](/quickstart) to get started.
+- **Amazon S3 client refresh.** The Amazon S3 client and presigned-URL library used for file uploads and downloads moved forward four patch releases. The refresh picks up the latest AWS endpoint updates and adds support for S3 Object Lock event-based retention parameters at the object and bucket level. You get more reliable file storage with no change to how uploads and downloads work day-to-day. See the [Quickstart](/quickstart) to get started.
+- **Expanded icon set.** The icon library used across the interface moved up four minor releases. It adds new icons including `calendar-chevrons-right`, `messages-circle`, `notebook-dot`, `globe-code`, `layout-arrow-right`, `layout-arrow-down`, `plant-pot`, and `houses`. It also refines existing icons such as `album`, `book-marked`, `door-open`, `satellite-dish`, and the credit card set for better legibility. You get a broader, cleaner icon vocabulary across menus and dashboards. See the [Quickstart](/quickstart) to get started.
+- **Faster database connections.** The MySQL driver behind the platform's database access moved to its latest patch release. The update reduces per-query overhead, speeds up local date and short-string handling, reuses TLS sessions across connections to the same server, and improves compression performance. You get quicker page loads on data-heavy screens with no change to how the app looks or works day-to-day. See the [Quickstart](/quickstart) to get started.
+- **Payments, validation, and JWT library updates.** The Stripe client, Zod validation library, and JOSE JWT library each moved to their latest patch releases. You get small performance and reliability improvements to checkout, form validation, and authenticated requests. Nothing about how the app looks or works day-to-day changes. See the [Quickstart](/quickstart) to get started.
+
 ## Week of September 11, 2026
 
 ### New features
