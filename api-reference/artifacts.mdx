@@ -50,6 +50,65 @@ curl "https://your-instance/api/artifacts?type=post&status=draft&limit=20"
 }
 ```
 
+## List blog-targeted post artifacts
+
+```http
+GET /api/artifacts/blog
+```
+
+Returns `post` artifacts whose `targetPlatform` is `blog`, newest first. Use this to power a blog surface built on workflow-generated content. Operator-authored articles from the Blog Manager live in a separate table and are fetched via the [Articles API](/api-reference/articles) instead.
+
+Query parameters:
+
+| Parameter | Description |
+| :--- | :--- |
+| `limit` | Maximum results. Defaults to `50`. |
+
+```bash
+curl "https://your-instance/api/artifacts/blog?limit=20"
+```
+
+```json
+{
+  "workspaceId": "3c4d5e6f-...",
+  "articles": [ { "id": "7e8f9a0b-...", "artifactType": "post", "targetPlatform": "blog" } ],
+  "totalCount": 1
+}
+```
+
+## Create an artifact
+
+```http
+POST /api/artifacts
+```
+
+Inserts a new artifact in the workspace. Used by the Blog Manager's REST variant to create a workflow-backed blog post, and available for any operator or integration that needs to seed the Results Vault directly. Body fields:
+
+| Field | Description |
+| :--- | :--- |
+| `title` | Required. Artifact title. |
+| `content` | Required. Full body. |
+| `artifactType` | One of `post`, `calendar_entry`, `document`, `file`, `crm_diff`, `csv`. Defaults to `post`. |
+| `targetPlatform` | Destination, for example `blog`, `linkedin`, `newsletter`. Defaults to `blog`. |
+| `status` | Lifecycle state. Defaults to `draft`. |
+| `summary` | Optional short summary. |
+| `scheduledFor` | ISO 8601 timestamp. Only applied when `status` is `scheduled`. |
+| `metadata` | Optional JSON object merged into the artifact's metadata. |
+
+```bash
+curl -X POST https://your-instance/api/artifacts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Launch recap",
+    "content": "# Launch recap...",
+    "artifactType": "post",
+    "targetPlatform": "blog",
+    "status": "draft"
+  }'
+```
+
+Returns HTTP `201` with `{ "success": true, "artifact": { ... } }`. Returns HTTP `400` when `title` or `content` is missing.
+
 ## Get the content calendar
 
 ```http
@@ -85,12 +144,18 @@ Returns HTTP `404` if the artifact is not found in the workspace.
 PATCH /api/artifacts/:id
 ```
 
-Moves an artifact through its lifecycle. Body fields:
+Moves an artifact through its lifecycle and, optionally, edits its content in place. Body fields:
 
 | Field | Description |
 | :--- | :--- |
 | `status` | New lifecycle state, for example `scheduled` or `published`. |
 | `scheduledFor` | ISO 8601 timestamp for when the artifact should ship. |
+| `title` | Replace the artifact title. |
+| `content` | Replace the artifact body. |
+| `summary` | Replace the artifact summary. |
+| `metadata` | Replace the artifact metadata object. |
+
+All fields are optional. Only the ones you send are updated.
 
 ```bash
 curl -X PATCH https://your-instance/api/artifacts/7e8f9a0b-.../ \

@@ -51,7 +51,8 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/command-center"
+              "platform/command-center",
+              "platform/blog-manager"
             ]
           },
           {
@@ -153,7 +154,8 @@
             "group": "Runs and artifacts",
             "pages": [
               "api-reference/runs",
-              "api-reference/artifacts"
+              "api-reference/artifacts",
+              "api-reference/articles"
             ]
           },
           {
