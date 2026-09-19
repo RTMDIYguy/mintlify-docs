@@ -10,7 +10,7 @@ The Article Editor is the companion form for creating a new article or editing a
 ## Prerequisites
 
 - An Agent Lab account. Both pages redirect to the login screen when opened while signed out.
-- Nothing else — the `articles` table is created on demand, so a new workspace has an empty Blog Manager on first visit.
+- Nothing else. The `articles` table is created on demand, so a new workspace has an empty Blog Manager on first visit.
 
 ## Open the Blog Manager
 
@@ -43,13 +43,13 @@ The editor has three action buttons that map directly to the article's `status` 
 
 - **Save Draft** stores the article with `status: "draft"`. Nothing is published, and no publish date is set. Use this for work in progress.
 - **Schedule** switches the status to `scheduled` and reveals the **Schedule For** date picker. Click it a second time (**Confirm Schedule**) to save the article with the chosen `scheduledFor` timestamp. Agent Lab does not auto-publish scheduled articles to an external CMS; the status and timestamp are recorded on the article so you can hand it off downstream.
-- **Publish Now** stores the article with `status: "published"` immediately. There is no undo — switch the status back to `draft` in the editor if you need to unpublish.
+- **Publish Now** stores the article with `status: "published"` immediately. There is no undo. Switch the status back to `draft` in the editor if you need to unpublish.
 
 Deleting an article from the Blog Manager list prompts for confirmation and then removes the row permanently. Ownership is enforced server-side: an article can only be edited or deleted by the user who created it.
 
 ## Blog articles vs. `post` artifacts in the Results Vault
 
-Blog articles and post artifacts share the same three-state lifecycle (`draft`, `scheduled`, `published`), but they are distinct records stored in different tables and surfaced in different places. Pick the right one based on how the content was produced and where it needs to live.
+Blog articles and post artifacts share the same three-state lifecycle (`draft`, `scheduled`, `published`). They are distinct records stored in different tables and surfaced in different places. Pick the right one based on how the content was produced and where it needs to live.
 
 | | Blog article | `post` artifact |
 | :--- | :--- | :--- |

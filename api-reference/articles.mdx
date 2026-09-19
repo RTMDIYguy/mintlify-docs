@@ -7,7 +7,7 @@ description: 'Manage owner-scoped blog articles through the articles tRPC router
 
 The `articles` tRPC router powers the [Blog Manager](/platform/blog-manager) and Article Editor. It manages long-form articles that operators hand-author in the app, as opposed to `post` artifacts a workflow produces (see the [Artifacts API](/api-reference/artifacts)).
 
-Every procedure is a `protectedProcedure` — the caller must be authenticated. All queries and mutations are scoped to the signed-in owner's `openId`, so operators can only read and mutate their own articles.
+Every procedure is a `protectedProcedure`, so the caller must be authenticated. All queries and mutations are scoped to the signed-in owner's `openId`, so operators can only read and mutate their own articles.
 
 ## The article object
 
@@ -102,7 +102,7 @@ The updated article object. Throws `Article not found or not owned by you` when 
 
 ## articles.delete
 
-Deletes one of the caller's articles. There is no soft-delete — the row is removed.
+Deletes one of the caller's articles. There is no soft-delete. The row is removed.
 
 ### Input
 
@@ -120,5 +120,5 @@ Throws `Article not found or not owned by you` when the article does not exist o
 
 ## Related
 
-- [Blog Manager and Article Editor](/platform/blog-manager) — operator guide to the UI these procedures back.
-- [Artifacts API](/api-reference/artifacts) — the workflow-generated `post` artifacts that are surfaced separately in the Results Vault, including the `GET /api/artifacts/blog` feed for `post` artifacts with `targetPlatform: "blog"`.
+- [Blog Manager and Article Editor](/platform/blog-manager): operator guide to the UI these procedures back.
+- [Artifacts API](/api-reference/artifacts): the workflow-generated `post` artifacts that are surfaced separately in the Results Vault, including the `GET /api/artifacts/blog` feed for `post` artifacts with `targetPlatform: "blog"`.
