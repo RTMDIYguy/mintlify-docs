@@ -83,7 +83,8 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/settings"
+              "platform/settings",
+              "platform/social-publishing"
             ]
           },
           {

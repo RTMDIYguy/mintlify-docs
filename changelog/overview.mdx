@@ -3,6 +3,12 @@ title: "Agent Lab changelog: weekly features, updates, and fixes"
 description: "Weekly updates on new Agent Lab features, improvements, and fixes, so you can track what shipped and how it affects your workflow."
 ---
 
+## Week of September 18, 2026
+
+### New features
+
+- **Scheduled posts now actually ship.** A social publishing dispatcher runs after every workflow queue tick. It picks up `post` artifacts whose `status` is `scheduled` and whose scheduled time has arrived, then posts them to LinkedIn, Facebook, Instagram, or Threads based on each artifact's target platform. On success the artifact flips to `published` with the returned post ID and posted-at timestamp. On failure it flips to a new `failed` status with the platform's error message. Broken credentials now surface in the Results Vault instead of causing posts to silently miss their slot. Configure each platform's token (`LINKEDIN_ACCESS_TOKEN`, `FACEBOOK_PAGE_ID` plus `FACEBOOK_PAGE_TOKEN`, `INSTAGRAM_USER_ID`, `THREADS_USER_ID`) once and any scheduled post from any workflow goes live automatically. See the [Social publishing dispatcher](/platform/social-publishing) guide.
+
 ## Week of September 14, 2026
 
 ### Updates
