@@ -57,7 +57,7 @@ Click **Download** on any artifact in the Run Inspector's **Output Artifacts** t
 
 ### Change artifact status
 
-Move an artifact through its lifecycle (for example `draft` to `scheduled`) from the Results Vault, or call `PATCH /api/artifacts/:id` with a new `status` and optional `scheduledFor` timestamp. Once a `post` artifact is `scheduled`, the [social publishing dispatcher](/platform/social-publishing) picks it up on the next queue tick and ships it to LinkedIn, Facebook, Instagram, or Threads based on its `targetPlatform`.
+Move an artifact through its lifecycle (for example `draft` to `scheduled`) from the Results Vault, or call `PATCH /api/artifacts/:id` with a new `status` and optional `scheduledFor` timestamp. Once a `post` artifact is `scheduled`, the [social publishing dispatcher](/platform/social-publishing) picks it up on the next queue tick. It ships the post to LinkedIn, Facebook, Instagram, or Threads based on the artifact's `targetPlatform`.
 
 ## The quality flywheel
 

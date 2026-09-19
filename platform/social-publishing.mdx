@@ -1,15 +1,15 @@
 ---
 title: "Social publishing dispatcher"
-description: "How scheduled post artifacts become live posts on LinkedIn, Facebook, Instagram, and Threads, including required environment variables, per-platform character limits, and the LinkedIn OAuth token helpers."
+description: "Publish scheduled post artifacts to LinkedIn, Facebook, Instagram, and Threads, with required environment variables and character limits."
 ---
 
-Agent Lab turns `post` artifacts in the [Results Vault](/workflows/results-vault#browse-the-results-vault) into live posts on LinkedIn, Facebook, Instagram, and Threads. A social dispatcher runs after every workflow queue tick, picks up any `post` artifact whose `status` is `scheduled` and whose `scheduledFor` has arrived, calls the target platform's Graph or UGC API, and updates the artifact to `published` or `failed`.
+Agent Lab turns `post` artifacts in the [Results Vault](/workflows/results-vault#browse-the-results-vault) into live posts on LinkedIn, Facebook, Instagram, and Threads. A social dispatcher runs after every workflow queue tick. It picks up any `post` artifact whose `status` is `scheduled` and whose `scheduledFor` has arrived, calls the target platform's Graph or UGC API, and updates the artifact to `published` or `failed`.
 
 Use this page to enable publishing for each platform, understand what the dispatcher does on every tick, and publish an artifact immediately without waiting for its scheduled time.
 
 ## When to configure it
 
-Enable the dispatcher when you want the platform to actually ship the posts your workflows produce, rather than only queueing them in the calendar. Until you configure at least one platform's credentials, scheduled posts stay in `scheduled` forever and every dispatch attempt for that platform records a `failed` status with a message naming the missing environment variable.
+Enable the dispatcher when you want the platform to actually ship the posts your workflows produce, rather than only queueing them in the calendar. Until you configure at least one platform's credentials, scheduled posts for that platform stay in `scheduled` forever. Every dispatch attempt records a `failed` status with a message naming the missing environment variable.
 
 ## Supported platforms
 
