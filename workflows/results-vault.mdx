@@ -44,6 +44,7 @@ The Results Vault lives in the Command Center under **Content Calendar & Schedul
 - `draft`: generated but not yet queued.
 - `scheduled`: queued with a `scheduledFor` timestamp.
 - `published`: shipped to its target platform.
+- `failed`: the [social publishing dispatcher](/platform/social-publishing) tried to post the artifact and the target platform rejected it. The rejection details are stored in `metadata.errorMessage`.
 - `archived`: retired.
 
 Each artifact carries an `artifactType` (`post`, `calendar_entry`, `document`, `file`, `crm_diff`, or `csv`), a `targetPlatform` (for example `linkedin`, `blog`, `newsletter`, `hubspot`, or `internal`), and its quality score.
@@ -56,7 +57,7 @@ Click **Download** on any artifact in the Run Inspector's **Output Artifacts** t
 
 ### Change artifact status
 
-Move an artifact through its lifecycle (for example `draft` to `scheduled`) from the Results Vault, or call `PATCH /api/artifacts/:id` with a new `status` and optional `scheduledFor` timestamp.
+Move an artifact through its lifecycle (for example `draft` to `scheduled`) from the Results Vault, or call `PATCH /api/artifacts/:id` with a new `status` and optional `scheduledFor` timestamp. Once a `post` artifact is `scheduled`, the [social publishing dispatcher](/platform/social-publishing) picks it up on the next queue tick and ships it to LinkedIn, Facebook, Instagram, or Threads based on its `targetPlatform`.
 
 ## The quality flywheel
 

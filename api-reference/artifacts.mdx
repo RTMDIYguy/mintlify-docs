@@ -15,7 +15,7 @@ Key fields on every artifact:
 | :--- | :--- |
 | `artifactType` | One of `post`, `calendar_entry`, `document`, `file`, `crm_diff`, `csv`. |
 | `title`, `content`, `summary` | The artifact's name, full body, and optional summary. |
-| `status` | Lifecycle state: `draft`, `scheduled`, `published`, or `archived`. |
+| `status` | Lifecycle state: `draft`, `scheduled`, `published`, `failed`, or `archived`. |
 | `scheduledFor` | Timestamp for scheduled items. |
 | `targetPlatform` | Destination, for example `linkedin`, `blog`, `newsletter`, `hubspot`, `internal`. |
 | `qualityScore`, `qualityGrade` | Composite 0-100 quality score and letter grade (`A`, `B`, `C`, `F`). |
@@ -101,6 +101,11 @@ curl -X PATCH https://your-instance/api/artifacts/7e8f9a0b-.../ \
 ```json
 { "success": true, "message": "Artifact status updated" }
 ```
+
+When a `post` artifact is set to `scheduled`, the [social publishing dispatcher](/platform/social-publishing) picks it up on the next queue tick, posts it to LinkedIn, Facebook, Instagram, or Threads based on `targetPlatform`, and writes the outcome back to the artifact:
+
+- On success: `status = "published"` with `metadata.postId`, `metadata.postedAt`, and `metadata.platform`.
+- On failure: `status = "failed"` with `metadata.errorMessage`, `metadata.platform`, and `metadata.lastDispatchAttempt`.
 
 ## Evaluate an artifact
 

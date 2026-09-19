@@ -1,0 +1,119 @@
+---
+title: "Social publishing dispatcher"
+description: "How scheduled post artifacts become live posts on LinkedIn, Facebook, Instagram, and Threads, including required environment variables, per-platform character limits, and the LinkedIn OAuth token helpers."
+---
+
+Agent Lab turns `post` artifacts in the [Results Vault](/workflows/results-vault#browse-the-results-vault) into live posts on LinkedIn, Facebook, Instagram, and Threads. A social dispatcher runs after every workflow queue tick, picks up any `post` artifact whose `status` is `scheduled` and whose `scheduledFor` has arrived, calls the target platform's Graph or UGC API, and updates the artifact to `published` or `failed`.
+
+Use this page to enable publishing for each platform, understand what the dispatcher does on every tick, and publish an artifact immediately without waiting for its scheduled time.
+
+## When to configure it
+
+Enable the dispatcher when you want the platform to actually ship the posts your workflows produce, rather than only queueing them in the calendar. Until you configure at least one platform's credentials, scheduled posts stay in `scheduled` forever and every dispatch attempt for that platform records a `failed` status with a message naming the missing environment variable.
+
+## Supported platforms
+
+| Platform | API used | Character limit applied to `content` |
+| :--- | :--- | :--- |
+| LinkedIn | UGC Posts API (`https://api.linkedin.com/v2/ugcPosts`) | 3000 |
+| Facebook | Graph API v18 Page `/feed` endpoint | 63206 |
+| Instagram | Graph API v18 two-step container + `media_publish` | 2200 (caption) |
+| Threads | Graph API v18 `/threads` endpoint | 280 |
+
+The dispatcher trims `content` to the platform's limit before posting. It routes each artifact by its `targetPlatform` field (`linkedin`, `facebook`, `instagram`, or `threads`). Any other value fails the artifact with `Unsupported platform: <value>`.
+
+## Required environment variables
+
+Set these on the server that runs the queue processor. Missing variables surface as the artifact's `errorMessage` on the first dispatch attempt.
+
+### LinkedIn
+
+| Variable | Purpose |
+| :--- | :--- |
+| `LINKEDIN_ACCESS_TOKEN` | Bearer token with `w_member_social` (personal) or `w_organization_social` (page) scope. Required. |
+| `LINKEDIN_CLIENT_ID` | OAuth client ID. Only needed when running the token helpers below. |
+| `LINKEDIN_CLIENT_SECRET` | OAuth client secret. Only needed when running the token helpers below. |
+
+The `author` on each post is built from `urn:li:person:<authorId>`, where `authorId` comes from the artifact's `metadata.authorId`. Set it on the artifact before scheduling, or the post is authored as `urn:li:person:UNKNOWN` and LinkedIn rejects it.
+
+### Facebook
+
+| Variable | Purpose |
+| :--- | :--- |
+| `FACEBOOK_PAGE_ID` | Numeric page ID that receives the post. Required. |
+| `FACEBOOK_PAGE_TOKEN` | Preferred access token with `pages_manage_posts`. |
+| `FACEBOOK_ACCESS_TOKEN` | Fallback token used when `FACEBOOK_PAGE_TOKEN` is not set. |
+
+If the artifact `metadata` includes a `url`, the dispatcher sends it as the post's `link`.
+
+### Instagram
+
+| Variable | Purpose |
+| :--- | :--- |
+| `INSTAGRAM_USER_ID` | Instagram business or creator account ID connected to the Facebook page. Required. |
+| `FACEBOOK_PAGE_TOKEN` or `FACEBOOK_ACCESS_TOKEN` | Instagram posting reuses the Facebook page token. Required. |
+
+Set `metadata.imageUrl` on the artifact. Instagram's Graph API requires an image URL for feed posts; the two-step container create fails without it.
+
+### Threads
+
+| Variable | Purpose |
+| :--- | :--- |
+| `THREADS_USER_ID` | Threads user ID for the account posting. Required. |
+| `FACEBOOK_PAGE_TOKEN` or `FACEBOOK_ACCESS_TOKEN` | Threads posting reuses the same token. Required. |
+
+If Threads returns `403` or `404`, the dispatcher records an error suggesting you check Threads API permissions or try the Instagram user ID instead. The account must be enabled for the Threads API.
+
+## Get a LinkedIn access token
+
+LinkedIn is the only platform whose token cannot be issued as a long-lived app secret. Two helper scripts ship with the server to walk the OAuth 2.0 Authorization Code flow and write `LINKEDIN_ACCESS_TOKEN` to `.env.local`.
+
+Both scripts read `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` and use `http://localhost:8080/callback` as the redirect URI. Register that redirect URI in your LinkedIn app before running either script.
+
+### `linkedin-get-token.py` (single-shot, no server)
+
+Best when you already have a browser open and can paste the redirect URL back into a prompt:
+
+1. Run `python3 server/execution/linkedin-get-token.py`.
+2. Open the printed authorization URL, sign in, and click **Allow**.
+3. Copy the full URL from the address bar after LinkedIn redirects to `localhost:8080/callback?code=...`.
+4. Paste it back at the prompt. The script exchanges the code and writes `LINKEDIN_ACCESS_TOKEN` to `.env.local`.
+
+### `linkedin-callback-server.py` (localhost catcher)
+
+Best when you want the redirect to be captured automatically:
+
+1. Run `python3 server/execution/linkedin-callback-server.py`. It listens on `http://localhost:8080/callback`.
+2. Open the authorization URL and click **Allow**. LinkedIn redirects to the local server.
+3. The server exchanges the code, writes `LINKEDIN_ACCESS_TOKEN` to `.env.local`, and prints the token preview and expiry.
+
+After the token is written, restart the server so the new value is loaded into the process, or save it through the [Secrets Vault](/platform/settings#secrets-vault), which applies changes without a restart.
+
+## The dispatch loop
+
+The queue processor calls `dispatchScheduledPosts()` after every workflow run. On each call the dispatcher:
+
+1. Selects up to 50 `workflowArtifacts` where `status = "scheduled"`, `scheduledFor` is set, and `scheduledFor` is in the past.
+2. Calls the platform handler for each artifact's `targetPlatform`, trimming `content` to the platform's character limit.
+3. On success, sets `status = "published"` and merges `postId`, `postedAt`, and `platform` into the artifact's `metadata`.
+4. On failure, sets `status = "failed"` and merges `errorMessage`, `platform`, and `lastDispatchAttempt` into `metadata`. The API error body from the platform is included in `errorMessage` (truncated to 200-300 characters).
+
+Failed artifacts are not retried automatically. Fix the underlying cause (missing token, expired credential, invalid `author` URN, missing `imageUrl`), reset the artifact's `status` back to `scheduled`, and the next tick picks it up. Use `PATCH /api/artifacts/:id` from the [Artifacts API](/api-reference/artifacts#update-artifact-status).
+
+## Publish immediately
+
+Call `postArtifactNow(artifactId, platform?)` when a workflow finishes a content step and the orchestrator wants to ship the result now instead of waiting for the scheduler tick.
+
+- `artifactId` — the artifact to post.
+- `platform` — optional. Overrides the artifact's `targetPlatform` for this call.
+
+The function loads the artifact, posts it through the same per-platform handlers as the scheduled path, and applies the same `published` or `failed` status update with the same `metadata` shape. If the artifact does not exist, it returns `{ success: false, error: "Artifact not found" }` without touching the database.
+
+## Troubleshooting
+
+- **Every dispatch fails with `... not configured`.** The named environment variable is missing on the server that runs the queue processor. Set it in `.env.local` (or the Secrets Vault) and restart the process if you edited the file directly.
+- **LinkedIn returns 401 or 403.** The token is expired or does not have `w_member_social`. Re-run one of the LinkedIn OAuth helpers to mint a fresh token.
+- **LinkedIn returns 422 with an author error.** The artifact's `metadata.authorId` is missing, so the dispatcher posts as `urn:li:person:UNKNOWN`. Set the LinkedIn member ID on the artifact before scheduling.
+- **Instagram container create fails.** The artifact has no `metadata.imageUrl`. Instagram feed posts require a public image URL.
+- **Threads returns 403 or 404.** The account is not enabled for the Threads API on the token you configured, or `THREADS_USER_ID` points at the wrong object.
+- **Artifact is `failed` and you want to retry.** Fix the cause, then `PATCH /api/artifacts/:id` with `{"status": "scheduled", "scheduledFor": "<iso>"}` to requeue it.
