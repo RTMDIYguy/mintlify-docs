@@ -34,6 +34,7 @@ Synthesizes a workflow proposal from a natural-language prompt. The orchestrator
 | `model` | string | No | Model to attribute the run to. Defaults to `gemini-2.5-flash`. |
 | `attachments` | array | No | Files to include as context. Each attachment has `name`, `content`, and an optional `type` MIME string. |
 | `context` | object | No | Additional key-value context for the orchestrator. |
+| `forceProposal` | boolean | No | When `true`, always return a workflow proposal, even if the prompt reads as a question. |
 
 If neither `prompt` nor `message` is a string, the endpoint returns `400` with an error message.
 
@@ -84,8 +85,6 @@ Returns `200` with a reply and, when a workflow matched, a structured proposal:
     "name": "HubSpot CRM Contact & Deal Synchronization",
     "description": "Direct synchronization bridge between HubSpot CRM and AgentLab multi-agent state...",
     "departmentCode": "sal",
-    "estimatedCostPerRun": 0.02,
-    "estimatedLatencySeconds": 8,
     "triggerType": "HubSpot Webhook / Scheduled Polling",
     "guardrails": [
       "Pre-execution rate-limit check",
@@ -110,11 +109,34 @@ Returns `200` with a reply and, when a workflow matched, a structured proposal:
 }
 ```
 
-Each proposal step is a DAG node with a `type` of `trigger`, `agent`, `guardrail`, or `destination`. Agent steps can carry an `agentId` identifying the assigned specialist agent.
+Each proposal step is a DAG node with a `type` of `trigger`, `agent`, `guardrail`, `action`, or `destination`. `agent` runs an LLM step, `guardrail` pauses the run for human approval, `action` drafts an outbound payload that a human must approve, and `destination` delivers output. Agent steps can carry an `agentId` identifying the assigned specialist agent.
+
+`estimatedCostPerRun` and `estimatedLatencySeconds` are optional and can be omitted or `null`. The model supplies them only when it has a real basis, such as a connector with a known published price. The keyword-matching fallback never includes them.
+
+A proposal is returned only when the prompt reads as a build request. Prompts that open with a strong imperative (*build*, *create*, *synthesize*, *design*, *automate*, *set up*, *draft*, *propose*) always get a proposal, even with a trailing question mark. Other prompts get a proposal only when they mention building or running a workflow and don't read as a question. Questions such as "run that by me again" get a conversational `reply` without a proposal. Set `forceProposal: true` in the request body to always get a proposal.
 
 ### Prompt matching
 
 When the LLM is unavailable, the orchestrator falls back to keyword matching against the workflow catalog. Recognized themes include CRM and pipeline sync (HubSpot), lead generation and outreach, content creation, finance and runway, client onboarding and fulfillment, and audits and compliance. Prompts that match no theme default to an operations workflow.
+
+## Ops Agent chat threads
+
+The Ops Agent modal saves its conversation so it survives page refreshes. These endpoints store messages per workspace, grouped by a thread ID that the client generates (up to 64 characters). Every endpoint returns `401` when the request has no workspace, `400` when `threadId` is missing, and `503` when the database is unavailable.
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/orchestrator/chat/:threadId` | Returns `200` with `{ "messages": [...] }` in chronological order, up to 200 messages. |
+| `POST` | `/api/orchestrator/chat/:threadId/messages` | Appends one message. Returns `201` with `{ "message": {...} }`. |
+| `PATCH` | `/api/orchestrator/chat/messages/:id` | Updates a message's `executionStatus` or `runResult`. Returns `200` with the updated message, or `404` if the message isn't in your workspace. |
+| `DELETE` | `/api/orchestrator/chat/:threadId` | Deletes every message in the thread. Returns `200` with `{ "ok": true }`. |
+
+The `POST` body takes `role` (required: `user`, `assistant`, or `watchdog`), `content` (required), and optional `proposal`, `runResult`, and `executionStatus` fields. `executionStatus` is one of `idle`, `running`, `completed`, `failed`, or `paused`.
+
+```bash
+curl -X POST https://your-instance/api/orchestrator/chat/thread-abc123/messages \
+  -H "Content-Type: application/json" \
+  -d '{"role": "user", "content": "Build a client onboarding workflow"}'
+```
 
 ## POST /api/orchestrator/execute
 
