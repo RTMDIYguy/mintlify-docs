@@ -1,6 +1,6 @@
 ---
 title: 'Customizing Ops Agent workflow proposals'
-description: 'Edit, remove, or add DAG steps in an Ops Agent workflow proposal card before approving execution.'
+description: 'Edit, retype, remove, or add DAG steps in an Ops Agent workflow proposal card before approving execution, and pick up saved chat threads after a refresh.'
 ---
 
 ## Overview
@@ -11,19 +11,61 @@ Use the step customizer when the agent's proposal is close but not exact. Adjust
 
 ## Editing steps in the proposal card
 
-Each step in the card shows an editable title and detail line plus a remove control:
+Each step in the card shows a step type selector, an editable title and detail line, and a remove control:
 
 - **Edit a step**: click the step's title or detail text and type your changes inline. Edits apply immediately to the proposal.
+- **Change a step's type**: pick a type from the step's type dropdown. See [Step types](#step-types) below.
 - **Remove a step**: click the **X** on the step. Remaining steps renumber automatically.
-- **Add a step**: click **+ Add Custom Execution Step** at the bottom of the step list. A new editable step is appended; rename it and set its detail to describe the operational action.
+- **Add a step**: click **+ Add Custom Execution Step** at the bottom of the step list. A new editable step is appended with the **AGENT** type. Rename it and set its detail to describe the operational action.
 
 The **Approve & Execute DAG** button is disabled while a proposal has zero steps, so you cannot execute an empty workflow.
 
+### Step types
+
+Each step's type controls how AgentLab OS runs it:
+
+| Type | Dropdown label | What the step does |
+| :--- | :--- | :--- |
+| `agent` | **AGENT** | Runs an LLM step. This is the default for custom steps. |
+| `guardrail` | **GUARDRAIL** | Pauses the run for human approval before later steps continue. |
+| `action` | **ACTION** | Drafts an outbound payload that a human must approve before it is sent. |
+| `destination` | **DEST** | Delivers the workflow output. |
+
+To add a human-approval gate, set a step's type to **GUARDRAIL** directly in the card. You don't need to ask the Ops Agent for a revised proposal.
+
 ## Approving or rejecting a proposal
 
-Once the steps match what you want, click **Approve & Execute DAG** to run the workflow. The card shows the run ID and latency when execution completes.
+Once the steps match what you want, click **Approve & Execute DAG** to run the workflow. When execution completes, the card shows the run ID plus the run's measured cost and latency.
+
+### Cost and latency
+
+The card shows cost and latency values from one of three sources:
+
+- **After a run**: the measured cost and latency of that run, labeled `measured`.
+- **Before a run, with a model estimate**: the estimate the model supplied with the proposal, labeled `est.`.
+- **Before a run, without an estimate**: `not estimated`. The Ops Agent only includes estimates when it has a real basis for them, such as a connector with a known published price, and never guesses.
 
 If the proposal needs a larger revision than inline edits can cover, click **Reject / Revise** and describe what should change. Your feedback is staged in the prompt bar as a revision request; send it and the Ops Agent generates an updated proposal.
+
+## When the agent proposes a workflow
+
+The Ops Agent decides per message whether to reply with a proposal card or a chat answer:
+
+- **Strong imperative requests get a proposal.** Messages that open with *build*, *create*, *synthesize*, *design*, *automate*, *set up*, *draft*, or *propose* always get a workflow proposal, even when they end in a question mark. For example, "Build the onboarding DAG, ok?" returns a proposal card.
+- **Questions get a chat reply.** Messages that contain a question mark or open like a question (*what*, *how*, *can*, *should*, and similar) get a conversational answer instead of a DAG card. For example, "Run that by me again" and "What runs do we have?" return a chat reply.
+- **Other messages** get a proposal when they mention building or running a workflow, such as "Automate lead follow-up" or "Run a DAG for client onboarding."
+
+To get a proposal for something you phrased as a question, rephrase it as an instruction, for example "Create a workflow that...".
+
+## Saved chat threads
+
+AgentLab OS saves your Ops Agent conversation per workspace. After you refresh the page or reopen the chat in the same browser, the thread reloads with its proposal cards still live and editable. Run outcomes recorded on a card, such as measured cost and latency, reload with it.
+
+Click **Clear Chat** to delete the saved thread from the server and start a new one.
+
+<Note>
+  Saving is best-effort. If AgentLab OS can't save or load the thread, the chat keeps working normally, but the conversation might not come back after a refresh.
+</Note>
 
 ## How the agent frames proposals
 
