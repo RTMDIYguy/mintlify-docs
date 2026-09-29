@@ -16,7 +16,7 @@ Use the chat endpoint when you want the Ops Agent to design a workflow from a pl
 
 The Ops Agent modal is no longer a synthesis-only assistant. When the orchestrator returns a workflow proposal, the modal renders it as an actionable DAG plan card with an execution steps checklist and an **Approve & Execute DAG in OS** button.
 
-When you click the button, the modal sends the proposal to `POST /api/orchestrator/execute`. The modal then:
+When you select the button, the modal sends the proposal to `POST /api/orchestrator/execute`. The modal then:
 
 - Shows execution progress while the DAG swarm runs.
 - Marks the plan card as **Executed in OS** with the returned run ID on success.

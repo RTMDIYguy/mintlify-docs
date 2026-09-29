@@ -13,7 +13,7 @@ Use this page to verify what a run actually did, gate runs that wait for approva
 
 ## Inspect a run
 
-Click **Inspect Run & Tools** on a run in the Dashboard, **Inspect Execution Run** on an audit entry in the Auditing page, or **Inspect** on a run in the Command Center. The Run Inspector opens with four tabs:
+Select **Inspect Run & Tools** on a run in the Dashboard, **Inspect Execution Run** on an audit entry in the Auditing page, or **Inspect** on a run in the Command Center. The Run Inspector opens with four tabs:
 
 | Tab | What it shows |
 | :--- | :--- |
@@ -52,7 +52,7 @@ The content calendar view pulls all `post` artifacts ordered by scheduled date a
 
 ### Download an artifact
 
-Click **Download** on any artifact in the Run Inspector's **Output Artifacts** tab or in the Results Vault. Agent Lab serves the raw content as a file: `csv` artifacts download as `.csv`, everything else as `.md`. The API equivalent is `GET /api/artifacts/:id/download`.
+Select **Download** on any artifact in the Run Inspector's **Output Artifacts** tab or in the Results Vault. Agent Lab serves the raw content as a file: `csv` artifacts download as `.csv`, everything else as `.md`. The API equivalent is `GET /api/artifacts/:id/download`.
 
 ### Change artifact status
 
@@ -73,7 +73,7 @@ The composite score maps to a grade: `A` (88+), `B` (75-87), `C` (60-74), `F` (b
 
 ### Evaluate
 
-Click **Re-evaluate** on an artifact in the Command Center, or call `POST /api/artifacts/:id/evaluate`, to re-score it on demand. Evaluation updates the artifact's `qualityScore`, `qualityGrade`, and `verificationNotes` in place.
+Select **Re-evaluate** on an artifact in the Command Center, or call `POST /api/artifacts/:id/evaluate`, to re-score it on demand. Evaluation updates the artifact's `qualityScore`, `qualityGrade`, and `verificationNotes` in place.
 
 ### Refine
 
