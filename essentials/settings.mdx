@@ -44,7 +44,7 @@ Example: `mintlify`
       Path to the logo in dark mode
     </ResponseField>
     <ResponseField name="href" type="string" default="/">
-      Where clicking on the logo links you to
+      Where selecting the logo links you to
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -99,7 +99,7 @@ Example: `mintlify`
 <ResponseField name="topbarCtaButton" type="Call to Action">
   <Expandable title="Topbar Call to Action">
     <ResponseField name="type" type={'"link" or "github"'} default="link">
-    Link shows a button. GitHub shows the repo information at the url provided including the number of GitHub stars.
+    Link shows a button. GitHub shows the repo information at the URL provided including the number of GitHub stars.
     </ResponseField>
     <ResponseField name="url" type="string">
     If `link`: What the button links to.
@@ -245,7 +245,7 @@ Example: `mintlify`
 </ResponseField>
 
 <ResponseField name="footerSocials" type="FooterSocials">
-  An object of social media accounts where the key:property pair represents the social media platform and the account url.
+  An object of social media accounts where the key:property pair represents the social media platform and the account URL.
   
   Example: 
   ```json
@@ -286,7 +286,7 @@ Example: `mintlify`
   <Expandable title="ModeToggle">
     <ResponseField name="default" type={'"light" or "dark"'}>
       Set if you always want to show light or dark mode for new users. When not
-      set, we default to the same mode as the user's operating system.
+      set, Mintlify defaults to the same mode as the user's operating system.
     </ResponseField>
     <ResponseField name="isHidden" type="boolean" default="false">
       Set to true to hide the dark/light mode toggle. You can combine `isHidden` with `default` to force your docs to only use light or dark mode. For example:
