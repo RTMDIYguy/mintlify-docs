@@ -37,7 +37,7 @@ Control which model runs and how it generates output:
 | Control | What it does | Default |
 | :--- | :--- | :--- |
 | **Primary Reasoning Model** | Main model for orchestration. Options include Gemini 2.5 Flash, Gemini 2.5 Pro, GPT-4o, Claude 3.5 Sonnet, and Llama 3.3 70B. | Gemini 2.5 Flash |
-| **Automatic Fallback Model** | Model used if the primary fails. Choose `None` for strict fail-fast behavior. | `gemini-2.5-pro` |
+| **Automatic Fallback Model** | Model used if the primary fails. Select `None` for strict fail-fast behavior. | `gemini-2.5-pro` |
 | **Sampling Temperature** | Slider from 0.0 to 1.0. Below 0.3 is deterministic strict-SOP adherence, 0.3–0.7 balances strategy and execution, above 0.7 favors creative ideation. | `0.2` |
 | **Max Output Tokens** | Upper bound on tokens per generation. | `4096` |
 | **Top-P Nucleus Sampling** | Probability mass cutoff for token sampling. | `0.9` |
