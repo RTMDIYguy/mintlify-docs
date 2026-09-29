@@ -16,6 +16,10 @@ description: "Weekly updates on new Agent Lab features, improvements, and fixes,
 - **Session cookie handling upgrade.** The library that reads session cookies during sign-in moved to its latest major release. It brings faster cookie parsing and cleaner handling of empty cookie values. Your sessions work the same way as before. See [Authentication](/api-reference/authentication) for details.
 - **Configuration loader upgrade.** The library that loads server configuration at startup moved up a major version to 18.0.4. The release adds a faster opt-in parser and fixes parsing edge cases. It also keeps startup logs quieter by default. You get steadier configuration handling with no change to how the app looks or works day-to-day. See the [Quickstart](/quickstart) to get started.
 
+### Bug fixes
+
+- **Network client security fixes.** The HTTP client behind AI model calls moved to version 6.29.0. The release closes three security issues. A malicious WebSocket server can no longer crash the service by choosing an unrequested subprotocol or sending an oversized compressed message. Retried downloads now check that a resumed response matches the original before joining the two, which prevents corrupted or split responses. You get steadier, safer AI-assisted features with no change to how the app looks or works day-to-day. See the [Quickstart](/quickstart) to get started.
+
 ## Week of September 14, 2026
 
 ### Updates
