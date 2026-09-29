@@ -3,7 +3,7 @@ title: "Agency Command Center: the Agent Lab operations cockpit"
 description: "Guide to the Agency Command Center: dispatch DAG workflows, monitor swarm agents, clear the approval queue, and command the Orchestrator."
 ---
 
-The Agency Command Center is the central operations cockpit for the Agent Lab platform. From a single page you can launch DAG (directed acyclic graph) workflow runs into the execution engine and watch the status of every swarm agent. You can also approve or reject runs that pause for human sign-off and hand tasks to the Ops Orchestrator in plain English.
+The Agency Command Center is the central operations cockpit for the Agent Lab platform. From a single page you can launch DAG (directed acyclic graph) workflow runs into the execution engine and watch the status of every swarm agent. You can also approve or reject runs that pause for human sign-off, release or refuse agent-drafted outbound payloads, and hand tasks to the Ops Orchestrator in plain English.
 
 Use the Command Center when you are the operator on duty. It replaces jumping between the workflows list, the runs log, and the agents roster with one live view of the whole operating system.
 
@@ -25,7 +25,7 @@ The header confirms the page is connected to the live runtime and shows the AI S
 
 Below the header, the **Operating Focus & Today's Top Actions** card lists the current operational directives derived from the URC Agency Operating Manual. Every session starts from the same priorities.
 
-## The four panels
+## The panels
 
 ### Deployable workflows & SOP playbooks
 
@@ -87,6 +87,39 @@ Some workflow runs pause mid-execution for human-in-the-loop sign-off and enter 
 
 When nothing is pending, the panel shows "All systems autonomous." Check this queue first each session. Paused runs block their downstream steps until you act.
 
+Run-level **Approve** only resumes a paused run. It does not send any agent-drafted outbound payload to an external system. Use the [Dispatch Decisions](#dispatch-decisions) card for that.
+
+### Dispatch Decisions
+
+When a workflow `action` step has an agent draft an outbound payload, such as a HubSpot contact upsert or a marketing email, Agent Lab holds the payload for human review instead of sending it. The Dispatch Decisions card lists every held payload. An **N Awaiting** badge in the card header shows how many dispatches need a decision.
+
+Each dispatch shows:
+
+- The dispatch title.
+- A connector badge naming the external system, for example HubSpot.
+- A full JSON preview of the payload the agent drafted.
+
+For example, a HubSpot contact upsert might preview like this:
+
+```json
+{
+  "email": "founder@example.com",
+  "firstname": "Jordan",
+  "lifecyclestage": "lead"
+}
+```
+
+Review the payload, then choose one action:
+
+- **Approve & Send** releases the payload to the external system through the `actions.approve` tRPC endpoint.
+- **Reject** prompts you for a reason. The Command Center calls `actions.reject` with the `dispatchId` and your `reason`, records the reason in the audit trail, and the run resumes past that step without sending the payload. If you cancel the prompt or leave the reason blank, the dispatch stays in the queue.
+
+When the queue is empty, the card shows "No dispatches awaiting decision."
+
+<Note>
+The approval queue and Dispatch Decisions act at different levels. Run-level **Approve** resumes a run in the `paused_for_approval` state. A dispatch decision releases or refuses the drafted outbound payload itself.
+</Note>
+
 ### Ops Orchestrator terminal
 
 The terminal at the bottom of the page is a natural-language command line into the Orchestrator, powered by Google Gemini 2.5 Flash. Type an operational task and click **Send**. For example:
@@ -106,6 +139,7 @@ When the Orchestrator synthesizes a new workflow, its reply includes a proposal 
 | Run a known SOP playbook now | Playbook launcher |
 | Check whether agents are online before dispatching work | Swarm agents |
 | Unblock a run waiting on human sign-off | Approval queue |
+| Send or refuse an agent-drafted outbound payload, such as a CRM upsert or email | Dispatch Decisions |
 | Dispatch an ad-hoc task or draft a new workflow in plain English | Orchestrator terminal |
 | Inspect or retune a playbook's steps, prompts, and agent assignments | Playbook launcher > Adjust Steps |
 
