@@ -28,7 +28,7 @@ Each **title** and **subtitle** creates an anchor and also shows up on the table
 
 ## Text formatting
 
-We support most markdown formatting. Simply add `**`, `_`, or `~` around text to format it.
+Mintlify supports most Markdown formatting. Add `**`, `_`, or `~` around text to format it.
 
 | Style         | How to write it   | Result          |
 | ------------- | ----------------- | --------------- |
@@ -40,18 +40,18 @@ You can combine these. For example, write `**_bold and italic_**` to get **_bold
 
 You need to use HTML to write superscript and subscript text. That is, add `<sup>` or `<sub>` around your text.
 
-| Text Size   | How to write it          | Result                 |
+| Text size   | How to write it          | Result                 |
 | ----------- | ------------------------ | ---------------------- |
 | Superscript | `<sup>superscript</sup>` | <sup>superscript</sup> |
 | Subscript   | `<sub>subscript</sub>`   | <sub>subscript</sub>   |
 
 ## Linking to pages
 
-You can add a link by wrapping text in `[]()`. You would write `[link to google](https://google.com)` to [link to google](https://google.com).
+You can add a link by wrapping text in `[]()`. For example, write `[link to google](https://google.com)` to [link to google](https://google.com).
 
-Links to pages in your docs need to be root-relative. Basically, you should include the entire folder path. For example, `[link to text](/writing-content/text)` links to the page "Text" in our components section.
+Links to pages in your docs need to be root-relative. Include the entire folder path. For example, `[link to text](/writing-content/text)` links to the page "Text" in our components section.
 
-Relative links like `[link to text](../text)` will open slower because we cannot optimize them as easily.
+Relative links like `[link to text](../text)` open slower because Mintlify cannot optimize them as easily.
 
 ## Blockquotes
 
