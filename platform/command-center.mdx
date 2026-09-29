@@ -29,9 +29,9 @@ Below the header, the **Operating Focus & Today's Top Actions** card lists the c
 
 ### Deployable workflows & SOP playbooks
 
-The playbook launcher lists every active DAG workflow with its name, description, trigger type, step count, and success rate. Click **Execute Run** on any card to dispatch that workflow into the execution engine immediately.
+The playbook launcher lists every active DAG workflow with its name, description, trigger type, step count, and success rate. Select **Execute Run** on any card to dispatch that workflow into the execution engine immediately.
 
-Each workflow card expands. Click the chevron to reveal the DAG execution node sequence: every step's title, type, action prompt, and assigned swarm agent. Use the expanded view to inspect exactly what a playbook will do before you dispatch it.
+Each workflow card expands. Select the chevron to reveal the DAG execution node sequence: every step's title, type, action prompt, and assigned swarm agent. Use the expanded view to inspect exactly what a playbook will do before you dispatch it.
 
 Each dispatch calls the run trigger endpoint with the Command Center recorded as the trigger source:
 
@@ -46,14 +46,14 @@ A toast confirms when the run is initiated, and the new run appears in the runs 
 
 #### Adjust workflow steps
 
-Click **Adjust Steps** on any workflow card to open the step editor. The editor lets you fine-tune the DAG execution graph without recreating the workflow:
+Select **Adjust Steps** on any workflow card to open the step editor. The editor lets you fine-tune the DAG execution graph without recreating the workflow:
 
 - Edit the workflow's name, description, and trigger type. Trigger types are manual execution, CRON schedule, webhook or inbound event, and event stream.
 - Add, remove, and reorder step nodes.
 - Set each step's type: trigger, agent, guardrail, or destination node.
 - Rewrite each step's action prompt and reassign its swarm agent.
 
-Click **Save Workflow Adjustments** to apply your changes. The Command Center updates the workflow metadata with `PATCH /api/workflows/{workflowId}` and replaces the step graph with a single request:
+Select **Save Workflow Adjustments** to apply your changes. The Command Center updates the workflow metadata with `PATCH /api/workflows/{workflowId}` and replaces the step graph with a single request:
 
 ```bash
 PUT /api/workflows/{workflowId}/steps
@@ -89,7 +89,7 @@ When nothing is pending, the panel shows "All systems autonomous." Check this qu
 
 ### Ops Orchestrator terminal
 
-The terminal at the bottom of the page is a natural-language command line into the Orchestrator, powered by Google Gemini 2.5 Flash. Type an operational task and click **Send**. For example:
+The terminal at the bottom of the page is a natural-language command line into the Orchestrator, powered by Google Gemini 2.5 Flash. Type an operational task and select **Send**. For example:
 
 ```text
 Run lead enrichment for Kansas City founders
@@ -97,7 +97,7 @@ Run lead enrichment for Kansas City founders
 
 The Orchestrator can dispatch cross-department tasks, synthesize new DAG workflows, or answer questions about real-time platform state. Each message posts to `POST /api/orchestrator/chat` and the reply streams back into the message feed with a timestamp. If the Orchestrator cannot complete a command, it reports the error in the feed and continues operating in fallback mode.
 
-When the Orchestrator synthesizes a new workflow, its reply includes a proposal card with the proposed name, department code, and description. Click **Approve & Deploy DAG** to send the proposal to `POST /api/workflows/deploy`. The deployed workflow then appears in the playbook launcher, where you can adjust its steps or execute a run.
+When the Orchestrator synthesizes a new workflow, its reply includes a proposal card with the proposed name, department code, and description. Select **Approve & Deploy DAG** to send the proposal to `POST /api/workflows/deploy`. The deployed workflow then appears in the playbook launcher, where you can adjust its steps or execute a run.
 
 ## When to use each panel
 

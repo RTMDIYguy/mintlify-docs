@@ -50,13 +50,13 @@ Three toggles gate how the agent reasons. All three are on by default:
 - **Multi-Step Chain-of-Thought DAG Planning** — the agent decomposes work into a multi-step plan before executing.
 - **Quality Flywheel Auto-Evaluation & Scoring** — the agent scores its own output and feeds the score back into future runs.
 
-Click **Save** to persist the configuration. Saving updates the orchestrator name, default model, and system prompt on the server.
+Select **Save** to persist the configuration. Saving updates the orchestrator name, default model, and system prompt on the server.
 
 ## Secrets vault
 
 The Secrets Vault (API Keys) tab stores provider credentials and bridges them to the live environment. When you save a secret, the platform applies it to the running process immediately. No restart is required, and a connection test run right after saving uses the new credential.
 
-To add a secret, enter a provider name and the secret value, then click **Save**. The vault:
+To add a secret, enter a provider name and the secret value, then select **Save**. The vault:
 
 - Normalizes the provider name to its canonical environment key. For example, `hubspot`, `hubspot_pat`, and `hubspot_access_token` all map to `HUBSPOT_PAT`; unrecognized providers map to the uppercased provider name.
 - Stores only a masked preview of the value, in the form `sk_1••••••••e0a1`. Values of 8 characters or fewer show as a fully masked placeholder.
@@ -100,7 +100,7 @@ Eight integrations ship pre-configured:
 
 ### Add a custom webhook
 
-Click **Add Webhook** and provide a name, an endpoint URL, and an optional API key. The integration is stored with type `webhook`:
+Select **Add Webhook** and provide a name, an endpoint URL, and an optional API key. The integration is stored with type `webhook`:
 
 ```json
 {
@@ -116,7 +116,7 @@ Click **Add Webhook** and provide a name, an endpoint URL, and an optional API k
 
 ### Mount an MCP server
 
-Click **Add MCP Server** to mount a standard-protocol tool source such as PostgreSQL MCP, BigQuery MCP, or Filesystem MCP. Configure:
+Select **Add MCP Server** to mount a standard-protocol tool source such as PostgreSQL MCP, BigQuery MCP, or Filesystem MCP. Configure:
 
 - **Server Identifier Name** — a label like `Postgres-MCP`.
 - **Transport Protocol** — `sse` (Server-Sent Events URL) or `stdio` (local command).
