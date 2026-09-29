@@ -138,7 +138,7 @@ Example: `mintlify`
       The hex color of the anchor icon background. Can also be a gradient if you pass an object with the properties `from` and `to` that are each a hex color.
     </ResponseField>
     <ResponseField name="version" type="string">
-      Used if you want to hide an anchor until the correct docs version is selected.
+      Use this to hide an anchor until the reader selects the matching docs version.
     </ResponseField>
     <ResponseField name="isDefaultHidden" type="boolean" default="false">
       Pass `true` if you want to hide the anchor until you directly link someone to docs inside it.
@@ -199,7 +199,7 @@ Example: `mintlify`
         <ResponseField name="inputPrefix" type="string">
         The default value that's designed to be a prefix for the authentication input field.
 
-        E.g. If an `inputPrefix` of `AuthKey` would inherit the default input result of the authentication field as `AuthKey`.
+        For example, an `inputPrefix` of `AuthKey` sets the default value of the authentication field to `AuthKey`.
         </ResponseField>
       </Expandable>
     </ResponseField>
@@ -209,7 +209,7 @@ Example: `mintlify`
 
       <Expandable title="Playground">
         <ResponseField name="mode" default="show" type='"show" | "simple" | "hide"'>
-          Whether the playground is showing, hidden, or only displaying the endpoint with no added user interactivity `simple`
+          Whether the playground is shown (`show`), hidden (`hide`), or displays only the endpoint without user interactivity (`simple`).
 
           Learn more at the [playground guides](https://mintlify.com/docs/api-playground/overview)
         </ResponseField>
@@ -273,10 +273,10 @@ Example: `mintlify`
 
   <Expandable title="Feedback">
     <ResponseField name="suggestEdit" type="boolean" default="false">
-    Enables a button to allow users to suggest edits via pull requests
+    Enables a button that lets users suggest edits through pull requests
     </ResponseField>
     <ResponseField name="raiseIssue" type="boolean" default="false">
-    Enables a button to allow users to raise an issue about the documentation
+    Enables a button that lets users raise an issue about the documentation
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -313,6 +313,6 @@ Example: `mintlify`
 </ResponseField>
 
 <ResponseField name="backgroundImage" type="string">
-  A background image to be displayed behind every page. See example with
+  A background image that displays behind every page. See example with
   [Infisical](https://infisical.com/docs) and [FRPC](https://frpc.io).
 </ResponseField>
