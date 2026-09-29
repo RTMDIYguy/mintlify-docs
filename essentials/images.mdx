@@ -13,17 +13,17 @@ icon: 'image'
 
 ### Using Markdown
 
-The [markdown syntax](https://www.markdownguide.org/basic-syntax/#images) lets you add images using the following code
+The [Markdown syntax](https://www.markdownguide.org/basic-syntax/#images) lets you add images using the following code:
 
 ```md
 ![title](/path/image.jpg)
 ```
 
-Note that the image file size must be less than 5MB. Otherwise, we recommend hosting on a service like [Cloudinary](https://cloudinary.com/) or [S3](https://aws.amazon.com/s3/). You can then use that URL and embed.
+Image files must be smaller than 5MB. For larger files, host the image on a service like [Cloudinary](https://cloudinary.com/) or [S3](https://aws.amazon.com/s3/). You can then embed the image using its URL.
 
 ### Using embeds
 
-To get more customizability with images, you can also use [embeds](https://mintlify.com/docs/create/image-embeds) to add images
+For more control over images, you can also use [embeds](https://mintlify.com/docs/create/image-embeds) to add images:
 
 ```html
 <img height="200" src="/path/image.jpg" />
@@ -52,7 +52,7 @@ Mintlify supports [HTML tags in Markdown](https://www.markdownguide.org/basic-sy
 
 ### iFrames
 
-Loads another HTML page within the document. Most commonly used for embedding videos.
+Use an iframe to load another HTML page within the document. iFrames are most commonly used to embed videos.
 
 ```html
 <iframe src="https://www.youtube.com/embed/4KzFe50RQkQ"> </iframe>
