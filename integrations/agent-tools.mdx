@@ -10,6 +10,7 @@ Use this page to understand what actions agents can perform and how to connect t
 ## Prerequisites
 
 - A HubSpot account with a private app that has CRM object scopes for deals and contacts.
+- For the `hubspot_marketing_email` connector: HubSpot Marketing Hub Enterprise, plus the `content`, `marketing.email.read`, and `marketing.email.write` scopes on the same private app.
 - A private app access token (personal access token) from HubSpot.
 - Access to the environment variables of the server that runs your agents.
 
@@ -60,6 +61,71 @@ When a token is present, every tool call sends a live request to `api.hubapi.com
 
 One behavior is specific to `upsertHubSpotContact`: when HubSpot returns `409 Conflict` because the contact already exists, the tool treats this as a verified existing contact rather than an error.
 
+## HubSpot outbound action connectors
+
+Agents can also draft outbound actions against HubSpot. A draft doesn't reach HubSpot when the agent writes it. Each draft waits in the **Dispatch Decisions** panel of the [Command Center](/platform/command-center). An operator reviews the payload there and clicks **Approve & Send** to release it to HubSpot. Both connectors use the same `HUBSPOT_PAT` or `HUBSPOT_ACCESS_TOKEN` token as the CRM tools.
+
+| Connector | Label | What it does |
+| --- | --- | --- |
+| `hubspot_contact_upsert` | HubSpot Contact Upsert | Creates or updates a contact, mapping the draft onto the Agent Lab HubSpot property contract. |
+| `hubspot_marketing_email` | HubSpot Marketing Email | Creates a marketing email draft in HubSpot Marketing Hub Enterprise from agent-drafted HTML. |
+
+### Contact field mapping
+
+Agents often draft contact payloads with informal keys instead of exact HubSpot property names. `hubspot_contact_upsert` translates these keys onto the HubSpot property contract before it writes the contact:
+
+- Keys that already match a contract property pass through unchanged.
+- `engagement_score` maps to `agentlab_intent_level` when its value contains `high`, `medium`, or `low`.
+- Any other accepted key without a matching property is kept in the `agentlab_intake_summary` property as `key: value` text. The connector doesn't drop it.
+
+Besides the contract properties, the connector accepts these extra keys: `notes`, `event_id`, `event_name`, `deal_stage`, `deal_value_usd`, `service_line`, `next_steps`, `lead_source`, `profit_engine_link`, and `engagement_score`. Any key outside the contract and this list still fails payload validation.
+
+```json
+{
+  "email": "jordan@example.com",
+  "firstname": "Jordan",
+  "engagement_score": "High",
+  "event_name": "Founder Summit",
+  "next_steps": "Book a discovery call"
+}
+```
+
+In this example, HubSpot receives `agentlab_intent_level: high`. The event name and next step are saved in `agentlab_intake_summary`.
+
+### Marketing email connector
+
+`hubspot_marketing_email` is the outreach channel for agent-drafted outreach, replacing Instantly. When an operator approves a draft, the connector builds a custom-coded email template from the draft HTML. It then creates a marketing email draft that uses that template in HubSpot Marketing Hub Enterprise. HubSpot handles delivery, open and click tracking, and compliance natively.
+
+| Key | Required | Description |
+| --- | --- | --- |
+| `name` | Yes | Internal name of the marketing email in HubSpot. |
+| `subject` | Yes | Email subject line. |
+| `html` | Yes | Email body HTML, used to build the custom-coded template. |
+| `from_name` | No | Sender display name. |
+| `from_email` | No | Sender email address. |
+| `reply_to` | No | Reply-to address. |
+| `to_email` | No | Intended recipient, appended to the email name as a label. |
+| `event_id` | No | Related event, appended to the email name as a label. |
+| `publish` | No | Set to `true` to request a publish through the HubSpot API after the draft is created. |
+
+```json
+{
+  "name": "Founder Summit follow-up",
+  "subject": "Great meeting you at Founder Summit",
+  "html": "<p>Hi Jordan,</p><p>Thanks for stopping by our booth.</p>",
+  "from_name": "Uncle Robert Consulting",
+  "reply_to": "hello@example.com",
+  "to_email": "jordan@example.com",
+  "event_id": "founder-summit-2026"
+}
+```
+
+This payload creates an email named `Founder Summit follow-up [jordan@example.com | founder-summit-2026]`.
+
+<Note>
+  `to_email` and `event_id` only label the email name so you can see who a draft is for in HubSpot. The connector doesn't send to that address. Attach recipients and scheduling to the email inside HubSpot. If you set `publish: true` and no recipient list is attached, HubSpot refuses the publish and the dispatch reports the error. The draft still stays in HubSpot.
+</Note>
+
 ## Fallback behavior without a token
 
 If neither `HUBSPOT_PAT` nor `HUBSPOT_ACCESS_TOKEN` is set, the tools do not fail. Each tool returns simulated local data so workflow runs complete end to end in development:
@@ -86,5 +152,5 @@ The system prompt reinforces the gate from the other side. It instructs agents t
 
 - **Agent reports simulated data in production.** No token is set in the environment where the agent runner executes. Set `HUBSPOT_PAT` and restart the server.
 - **Tool output shows a 401 error from HubSpot.** The token is invalid or expired. Generate a new private app token in HubSpot and update the environment variable.
-- **Tool output shows a 403 error from HubSpot.** The private app lacks the required CRM scopes. Grant read and write scopes for deals and contacts.
+- **Tool output shows a 403 error from HubSpot.** The private app lacks the required scopes. Grant read and write scopes for deals and contacts. For the `hubspot_marketing_email` connector, also grant `content`, `marketing.email.read`, and `marketing.email.write`.
 - **A step fails with a refusal or passive non-execution error.** The anti-passivity gate caught the agent claiming it could not act or acknowledging the task without executing it. The error quotes the matched phrase. Retry the run; the system prompt instructs agents to always execute with the available tools.
