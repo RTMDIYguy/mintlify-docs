@@ -1,0 +1,124 @@
+---
+title: 'Articles API'
+description: 'Manage owner-scoped blog articles through the articles tRPC router that backs the Blog Manager and Article Editor.'
+---
+
+## Overview
+
+The `articles` tRPC router powers the [Blog Manager](/platform/blog-manager) and Article Editor. It manages long-form articles that operators hand-author in the app, as opposed to `post` artifacts a workflow produces (see the [Artifacts API](/api-reference/artifacts)).
+
+Every procedure is a `protectedProcedure`, so the caller must be authenticated. All queries and mutations are scoped to the signed-in owner's `openId`, so operators can only read and mutate their own articles.
+
+## The article object
+
+Articles are stored in the `articles` table. Each row returned by the router has this shape:
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | integer | Primary key. |
+| `title` | string | Article title. |
+| `excerpt` | string | Optional summary. Empty string when unset. |
+| `content` | string | Markdown body. |
+| `slug` | string | URL slug. Unique per owner. |
+| `category` | string | One of `General`, `AI Technology`, `Business`, `Tutorial`, `News`. Defaults to `General`. |
+| `status` | string | `draft`, `scheduled`, or `published`. |
+| `scheduledFor` | string or null | ISO 8601 timestamp. Populated only when `status` is `scheduled`. |
+| `featuredImage` | string | Optional URL for the hero image. Empty string when unset. |
+| `views` | integer | View count. Defaults to `0`. |
+| `createdAt` | string | ISO 8601 timestamp. |
+| `updatedAt` | string | ISO 8601 timestamp. |
+
+## articles.getMyArticles
+
+Returns the caller's articles, newest first.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `limit` | integer | No | 1 to 200. Defaults to `50`. |
+
+### Output
+
+An array of article objects.
+
+## articles.getBySlug
+
+Fetches one of the caller's articles by slug.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `slug` | string | Yes | Slug of the article to fetch. |
+
+### Output
+
+A single article object. Throws `Article not found: {slug}` when no article with that slug exists for the caller.
+
+## articles.create
+
+Creates a new article owned by the caller. Slugs are unique per owner; reusing a slug returns a database uniqueness error.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `title` | string | Yes | At least 1 character. |
+| `content` | string | Yes | Markdown body. At least 1 character. |
+| `slug` | string | Yes | URL slug. |
+| `excerpt` | string | No | Optional summary. |
+| `category` | string | No | Defaults to `General`. |
+| `status` | enum | No | `draft`, `scheduled`, or `published`. Defaults to `draft`. |
+| `scheduledFor` | string | No | ISO 8601 timestamp. Only applied when `status` is `scheduled`. |
+| `featuredImage` | string | No | URL for the hero image. |
+
+### Output
+
+The created article object.
+
+## articles.update
+
+Updates one of the caller's articles.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `articleId` | integer | Yes | Positive integer. Article to update. |
+| `title` | string | Yes | At least 1 character. |
+| `content` | string | Yes | Markdown body. At least 1 character. |
+| `category` | string | No | Defaults to `General`. |
+| `status` | enum | No | `draft`, `scheduled`, or `published`. Defaults to `draft`. |
+| `excerpt` | string | No | Optional summary. |
+| `scheduledFor` | string | No | ISO 8601 timestamp. Only applied when `status` is `scheduled`. |
+| `featuredImage` | string | No | URL for the hero image. |
+
+Note that the slug is not updatable through this procedure.
+
+### Output
+
+The updated article object. Throws `Article not found or not owned by you` when the article does not exist or belongs to another user.
+
+## articles.delete
+
+Deletes one of the caller's articles. There is no soft-delete. The row is removed.
+
+### Input
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `articleId` | integer | Yes | Positive integer. Article to delete. |
+
+### Output
+
+```json
+{ "success": true, "articleId": 42 }
+```
+
+Throws `Article not found or not owned by you` when the article does not exist or belongs to another user.
+
+## Related
+
+- [Blog Manager and Article Editor](/platform/blog-manager): operator guide to the UI these procedures back.
+- [Artifacts API](/api-reference/artifacts): the workflow-generated `post` artifacts that are surfaced separately in the Results Vault, including the `GET /api/artifacts/blog` feed for `post` artifacts with `targetPlatform: "blog"`.

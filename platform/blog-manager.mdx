@@ -1,0 +1,68 @@
+---
+title: "Blog Manager and Article Editor"
+description: "Write, schedule, and publish long-form blog articles from the Blog Manager, and see how blog articles differ from post artifacts in the Results Vault."
+---
+
+The Blog Manager is Agent Lab's workspace for long-form owned content. Use it when you want to hand-author (or edit an agent-drafted) blog post, keep it in draft, schedule it for a future publish date, or ship it immediately. Every article is stored in the `articles` table and is scoped to the signed-in owner, so each operator manages their own catalog.
+
+The Article Editor is the companion form for creating a new article or editing an existing one.
+
+## Prerequisites
+
+- An Agent Lab account. Both pages redirect to the login screen when opened while signed out.
+- Nothing else. The `articles` table is created on demand, so a new workspace has an empty Blog Manager on first visit.
+
+## Open the Blog Manager
+
+Sign in, then navigate to `/blog-manager` in the web app. The page has three sections:
+
+- **Header** with a **Write Article** button that opens the editor at `/article/new`.
+- **Content Calendar** with counts of draft, scheduled, and published articles owned by the signed-in user.
+- **Your Articles** table listing every article with its title, status, category, view count, created date, and per-row **Edit** and **Delete** actions.
+
+The article list is fetched with `articles.getMyArticles` and returns the 50 most recent articles by default.
+
+## Write or edit an article
+
+Click **Write Article** to open the Article Editor at `/article/new`, or click **Edit** on any row to open it at `/article/{slug}`. The editor is a single form:
+
+| Field | Description |
+| :--- | :--- |
+| **Title** | Required. Also used to derive the URL slug when you create a new article. |
+| **Excerpt** | Optional short summary shown in the Blog Manager list. |
+| **Content** | Required. Markdown source for the article body. |
+| **Category** | One of `General`, `AI Technology`, `Business`, `Tutorial`, `News`. Defaults to `General`. |
+| **Featured Image URL** | Optional URL for the article's hero image. |
+| **Schedule For** | Date and time picker, shown only when the status is `scheduled`. Required to save a scheduled article. |
+
+When you create a new article, Agent Lab derives its slug by lowercasing the title, replacing spaces with `-`, and stripping non-word characters. Slugs are unique per owner.
+
+## Save draft, schedule, or publish now
+
+The editor has three action buttons that map directly to the article's `status` field:
+
+- **Save Draft** stores the article with `status: "draft"`. Nothing is published, and no publish date is set. Use this for work in progress.
+- **Schedule** switches the status to `scheduled` and reveals the **Schedule For** date picker. Click it a second time (**Confirm Schedule**) to save the article with the chosen `scheduledFor` timestamp. Agent Lab does not auto-publish scheduled articles to an external CMS; the status and timestamp are recorded on the article so you can hand it off downstream.
+- **Publish Now** stores the article with `status: "published"` immediately. There is no undo. Switch the status back to `draft` in the editor if you need to unpublish.
+
+Deleting an article from the Blog Manager list prompts for confirmation and then removes the row permanently. Ownership is enforced server-side: an article can only be edited or deleted by the user who created it.
+
+## Blog articles vs. `post` artifacts in the Results Vault
+
+Blog articles and post artifacts share the same three-state lifecycle (`draft`, `scheduled`, `published`). They are distinct records stored in different tables and surfaced in different places. Pick the right one based on how the content was produced and where it needs to live.
+
+| | Blog article | `post` artifact |
+| :--- | :--- | :--- |
+| Where it lives | `/blog-manager` and the Article Editor. | [Results Vault](/workflows/results-vault#browse-the-results-vault) in the Command Center. |
+| Storage | `articles` table, scoped per owner (`ownerOpenId`). | `workflow_artifacts` table, scoped per workspace. |
+| Produced by | An operator hand-authoring in the Article Editor. | A workflow run's step output. |
+| Fields | `title`, `slug`, `excerpt`, `content`, `category`, `featuredImage`, `status`, `scheduledFor`, `views`. | `artifactType`, `targetPlatform`, `title`, `content`, `summary`, quality score, revision lineage, run linkage. |
+| Quality flywheel | Not scored. Edit content directly in the editor. | Scored on the four-part rubric; refine and re-evaluate from the Command Center. |
+| API | `articles.*` tRPC procedures and `GET /api/artifacts/blog`. | [Artifacts API](/api-reference/artifacts). |
+
+A workflow can also generate blog-shaped content by writing a `post` artifact with `targetPlatform: "blog"`. Those live in the Results Vault, not in the Blog Manager, and are listed via `GET /api/artifacts/blog`. Treat the Blog Manager as the surface for operator-authored articles and the Results Vault as the surface for agent-produced content.
+
+## API access
+
+- [Articles API](/api-reference/articles): tRPC procedures for owner-scoped article CRUD.
+- [Artifacts API](/api-reference/artifacts): the REST feed of workflow-generated blog posts and the rest of the artifact lifecycle.
